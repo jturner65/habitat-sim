@@ -1,0 +1,7 @@
+{
+"render_asset": "../frl_apartment_sofa.glb",
+"collision_asset": "frl_apartment_sofa_cv_decomp.glb",
+"mass": 68,
+"COM": [0,0,0],
+"join_collision_meshes": false
+}

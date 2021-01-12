@@ -1,0 +1,7 @@
+{
+"render_asset": "../frl_apartment_bin_03.glb",
+"collision_asset": "frl_apartment_bin_03_cv_decomp.glb",
+"mass": 1.81437,
+"COM": [0,0,0],
+"join_collision_meshes": false
+}

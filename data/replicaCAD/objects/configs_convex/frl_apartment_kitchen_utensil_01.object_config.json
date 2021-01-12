@@ -1,0 +1,7 @@
+{
+"render_asset": "../frl_apartment_kitchen_utensil_01.glb",
+"collision_asset": "frl_apartment_kitchen_utensil_01_cv_decomp.glb",
+"mass": 3,
+"COM": [0,0,0],
+"join_collision_meshes": false
+}

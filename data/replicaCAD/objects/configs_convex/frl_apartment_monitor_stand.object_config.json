@@ -1,0 +1,6 @@
+{
+"render_asset": "../frl_apartment_monitor_stand.glb",
+"collision_asset": "frl_apartment_monitor_stand_cv_decomp.glb",
+"COM": [0,0,0],
+"join_collision_meshes": false
+}

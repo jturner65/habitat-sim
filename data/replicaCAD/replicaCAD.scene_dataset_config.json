@@ -1,0 +1,34 @@
+{
+  "stages": {
+      "paths": {
+          ".json" : ["stages"]
+      }
+  },
+  "objects": {
+      "paths": {
+          ".json" : ["objects/configs_convex"]
+      }
+  },
+  "light_setups":{
+      "paths": {
+          ".json" : ["lighting"]
+      }
+  },
+  "scene_instances":{
+      "paths": {
+          ".json" : ["scenes"]
+      }
+  },
+  "navmesh_instances":{
+    "empty_stage_navmesh": "navmeshes/empty_stage.navmesh",
+    "apt_0_navmesh": "navmeshes/apt_0_static_furniture.navmesh",
+    "apt_1_navmesh": "navmeshes/apt_1_static_furniture.navmesh",
+    "apt_2_navmesh": "navmeshes/apt_2_static_furniture.navmesh",
+    "apt_3_navmesh": "navmeshes/apt_3_static_furniture.navmesh",
+    "apt_4_navmesh": "navmeshes/apt_4_static_furniture.navmesh",
+    "apt_5_navmesh": "navmeshes/apt_5_static_furniture.navmesh"
+  },
+  "semantic_scene_descriptor_instances": {
+
+  }
+}

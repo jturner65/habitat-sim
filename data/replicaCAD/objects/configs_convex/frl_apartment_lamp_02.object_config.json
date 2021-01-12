@@ -1,0 +1,7 @@
+{
+"render_asset": "../frl_apartment_lamp_02.glb",
+"collision_asset": "frl_apartment_lamp_02_cv_decomp.glb",
+"mass": 4,
+"COM": [0,0,0],
+"join_collision_meshes": false
+}

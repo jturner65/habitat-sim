@@ -1,0 +1,7 @@
+{
+"render_asset": "../frl_apartment_small_appliance_02.glb",
+"collision_asset": "frl_apartment_small_appliance_02_cv_decomp.glb",
+"mass": 3.8,
+"COM": [0,0,0],
+"join_collision_meshes": false
+}

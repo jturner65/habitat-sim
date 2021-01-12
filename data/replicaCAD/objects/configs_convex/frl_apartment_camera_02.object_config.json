@@ -1,0 +1,7 @@
+{
+"render_asset": "../frl_apartment_camera_02.glb",
+"collision_asset": "frl_apartment_camera_02_cv_decomp.glb",
+"mass": 1.0,
+"COM": [0,0,0],
+"join_collision_meshes": false
+}
