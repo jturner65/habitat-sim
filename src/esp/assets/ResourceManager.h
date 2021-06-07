@@ -581,6 +581,20 @@ class ResourceManager {
       const esp::assets::PhongMaterialColor& materialColor);
 
   /**
+   * @brief Creates an asset name appropriately modified based certain
+   * conditions present in passed @p assetInfo.  This function will derive
+   * encodings based on the state of the assetInfo so that different material
+   * configurations can be specified on the same asset.
+   * @param info The AssetInfo that describes the asset being named.
+   * @param materialId [in/out] A string key representing the material to use.
+   * If empty, this will be generated and populated.
+   * @return the modified asset name to be used to save this asset to @p
+   * resourceDict_.
+   */
+  std::string createModifiedAssetName(const AssetInfo& info,
+                                      std::string& materialId);
+
+  /**
    * @brief Load a render asset (if not already loaded) and create a render
    * asset instance.
    *
@@ -1113,7 +1127,7 @@ class ResourceManager {
    * @brief See @ref setRecorder.
    */
   std::shared_ptr<esp::gfx::replay::Recorder> gfxReplayRecorder_;
-};  // class ResourceManager
+};  // namespace assets
 
 CORRADE_ENUMSET_OPERATORS(ResourceManager::Flags)
 

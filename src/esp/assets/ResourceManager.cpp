@@ -404,6 +404,7 @@ ResourceManager::createStageAssetInfosFromAttributes(
       virtualUnitToMeters,                      // virtualUnitToMeters
       stageAttributes->getRequiresLighting()    // requiresLighting
   };
+  renderInfo.shaderTypeToUse = stageAttributes->getShaderType();
   resMap["render"] = renderInfo;
   if (createCollisionInfo) {
     // create collision asset info if requested
@@ -547,10 +548,9 @@ scene::SceneNode* ResourceManager::loadAndCreateRenderAssetInstance(
   // copy the const creation info to modify the key if necessary
   RenderAssetInstanceCreationInfo finalCreation(creation);
   if (assetInfo.overridePhongMaterial != Cr::Containers::NullOpt) {
+    std::string materiaId = "";
     // material override is requested so get the id
-    finalCreation.filepath =
-        assetInfo.filepath + "?" +
-        createColorMaterial(*assetInfo.overridePhongMaterial);
+    finalCreation.filepath = createModifiedAssetName(assetInfo, materiaId);
   }
 
   return createRenderAssetInstance(finalCreation, parent, drawables,
@@ -559,7 +559,11 @@ scene::SceneNode* ResourceManager::loadAndCreateRenderAssetInstance(
 
 bool ResourceManager::loadRenderAsset(const AssetInfo& info) {
   bool registerMaterialOverride =
-      info.overridePhongMaterial != Cr::Containers::NullOpt;
+      (info.overridePhongMaterial != Cr::Containers::NullOpt) ||
+      // TODO correct?
+      (info.shaderTypeToUse !=
+       static_cast<int>(
+           esp::metadata::attributes::ObjectInstanceShaderType::Unknown));
   bool fileAssetIsLoaded = resourceDict_.count(info.filepath) > 0;
 
   bool meshSuccess = fileAssetIsLoaded;
@@ -603,10 +607,10 @@ bool ResourceManager::loadRenderAsset(const AssetInfo& info) {
   // now handle loading the material override AssetInfo if configured
   if (meshSuccess && registerMaterialOverride) {
     // register or get the override material id
-    std::string materialId = createColorMaterial(*info.overridePhongMaterial);
+    std::string materialId = "";
 
     // construct the unique id for the material modified asset
-    std::string modifiedAssetName = info.filepath + "?" + materialId;
+    std::string modifiedAssetName = createModifiedAssetName(info, materialId);
     const bool matModAssetIsRegistered =
         resourceDict_.count(modifiedAssetName) > 0;
     if (!matModAssetIsRegistered) {
@@ -644,6 +648,25 @@ bool ResourceManager::loadRenderAsset(const AssetInfo& info) {
   return meshSuccess;
 }
 
+std::string ResourceManager::createModifiedAssetName(const AssetInfo& info,
+                                                     std::string& materialId) {
+  std::string modifiedAssetName = info.filepath;
+
+  // check materialId
+  if (info.overridePhongMaterial != Cr::Containers::NullOpt) {
+    if (materialId.empty()) {
+      // if passed value is empty, synthesize new color and new materialId
+      // based on this color and values specified in info
+      materialId = createColorMaterial(*info.overridePhongMaterial);
+    }
+    modifiedAssetName += "?" + materialId;
+  }
+  if (info.shaderTypeToUse !=)
+
+    // construct name with materialId specification and desired shader type
+    return modifiedAssetName;
+}  // ResourceManager::createModifiedAssetName
+
 scene::SceneNode* ResourceManager::createRenderAssetInstance(
     const RenderAssetInstanceCreationInfo& creation,
     scene::SceneNode* parent,
@@ -656,7 +679,8 @@ scene::SceneNode* ResourceManager::createRenderAssetInstance(
   if (!isLightSetupCompatible(loadedAssetData, creation.lightSetupKey)) {
     LOG(WARNING)
         << "Instantiating render asset " << creation.filepath
-        << " with incompatible light setup, instance will not be correctly lit."
+        << " with incompatible light setup, instance will not be correctly "
+           "lit."
            "For objects, please ensure 'requires lighting' is enabled in "
            "object config file.";
   }
@@ -716,8 +740,8 @@ bool ResourceManager::loadStageInternal(
             // "creation" filepath to the modified key
 
             // Right now, we only allow for an asset to be loaded with one
-            // configuration, since generated mesh data may be invalid for a new
-            // configuration
+            // configuration, since generated mesh data may be invalid for a
+            // new configuration
             LOG(ERROR)
                 << "Reloading asset " << filename
                 << " with different configuration not currently supported. "
@@ -780,6 +804,7 @@ bool ResourceManager::loadObjectMeshDataFromFile(
   if (!filename.empty()) {
     AssetInfo meshInfo{AssetType::UNKNOWN, filename};
     meshInfo.requiresLighting = requiresLighting;
+    meshInfo.shaderTypeToUse = objectAttributes->getShaderType();
     meshInfo.frame = buildFrameFromAttributes(objectAttributes, {0, 0, 0});
     success = loadRenderAsset(meshInfo);
     if (!success) {
@@ -1508,9 +1533,9 @@ bool ResourceManager::buildTrajectoryVisualization(
 
   // make LoadedAssetData corresponding to this asset
   LoadedAssetData loadedAssetData{info, meshMetaData};
-  // TODO : need to free render assets associated with this object if collision
-  // occurs, otherwise leak! (Currently unsupported).
-  // if (resourceDict_.count(trajVisName) != 0) {
+  // TODO : need to free render assets associated with this object if
+  // collision occurs, otherwise leak! (Currently unsupported). if
+  // (resourceDict_.count(trajVisName) != 0) {
   //   resourceDict_.erase(trajVisName);
   // }
   auto inserted =
@@ -1955,7 +1980,7 @@ bool ResourceManager::instantiateAssetsOnDemand(
   // if attributes are "dirty" (important values have changed since last
   // registered) then re-register.  Should never return ID_UNDEFINED - this
   // would mean something has corrupted the library.
-  // NOTE : this is called when an new object is being made, but before the
+  // NOTE : this is called when a new object is being made, but before the
   // object has acquired a copy of its parent attributes.  No object should
   // ever have a copy of attributes with isDirty == true - any editing of
   // attributes for objects requires object rebuilding.
@@ -2487,8 +2512,8 @@ void ResourceManager::createConvexHullDecomposition(
                                 Mn::Trade::MeshAttribute::Position,
                                 Cr::Containers::arrayView(positions)}}});
 
-    // Create a GenericMeshData (needsNormals_ = true and uploadBuffersToGPU in
-    // order to render the collision asset)
+    // Create a GenericMeshData (needsNormals_ = true and uploadBuffersToGPU
+    // in order to render the collision asset)
     genCHMeshData = std::make_unique<GenericMeshData>(true);
     genCHMeshData->setMeshData(*std::move(CHMesh));
     genCHMeshData->BB = computeMeshBB(genCHMeshData.get());

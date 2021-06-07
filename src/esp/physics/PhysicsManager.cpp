@@ -92,7 +92,8 @@ int PhysicsManager::addObjectInstance(
                << " as specified in object instance attributes.";
     return 0;
   }
-  // set shader type to use for stage
+  // set shader type to use for object instance, which may override shadertype
+  // specified in object attributes.
   int objShaderType = objInstAttributes->getShaderType();
   if (objShaderType !=
       static_cast<int>(

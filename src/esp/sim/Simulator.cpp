@@ -314,11 +314,14 @@ bool Simulator::createSceneInstance(const std::string& activeSceneName) {
   std::string lightSetupKey;
 
   if (config_.overrideSceneLightDefaults) {
+    // SimulatorConfiguration set to override any dataset configuration specs
+    // regarding lighting.
     lightSetupKey = config_.sceneLightSetup;
     LOG(INFO) << "::createSceneInstance : Using config-specified "
                  "Light key : -"
               << lightSetupKey << "-";
   } else {
+    // Get dataset/scene instance specified lighting
     lightSetupKey = metadataMediator_->getLightSetupFullHandle(
         curSceneInstanceAttributes->getLightingHandle());
     LOG(INFO) << "::createSceneInstance : Using scene instance-specified "

@@ -118,7 +118,12 @@ class AbstractObjectAttributes : public AbstractAttributes {
   void setRenderAssetIsPrimitive(bool renderAssetIsPrimitive) {
     setBool("renderAssetIsPrimitive", renderAssetIsPrimitive);
   }
-
+  /**
+   * @brief Get whether this object uses file-based mesh render object or
+   * primitive render shapes
+   * @return whether this object's render asset is a
+   * primitive or not
+   */
   bool getRenderAssetIsPrimitive() const {
     return getBool("renderAssetIsPrimitive");
   }
@@ -190,10 +195,15 @@ class AbstractObjectAttributes : public AbstractAttributes {
    */
   int getShaderType() const { return getInt("shader_type"); }
 
-  // if true use phong illumination model instead of flat shading
+  /**
+   * @brief if false use flat shading instead of phong or pbr shader
+   */
   void setRequiresLighting(bool requiresLighting) {
     setBool("requires_lighting", requiresLighting);
   }
+  /**
+   * @brief if false use flat shading instead of phong or pbr shader
+   */
   bool getRequiresLighting() const { return getBool("requires_lighting"); }
 
   bool getIsDirty() const { return getBool("__isDirty"); }
