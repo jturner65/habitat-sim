@@ -42,9 +42,7 @@ Below are the supported JSON tags for Physics Manager Attributes templates, and 
 "restitution_coefficient"
 	- double
 	- The default coefficient of restitution. This can be overridden in Stage and Object Attributes.
-"rigid object paths"
-	- list of strings
-	- A list of locations to query for supported object files that should be available to be loaded into the world.
+
 
 `Stage Attributes`_
 ===================
@@ -56,7 +54,6 @@ A stage in Habitat-Sim is a static object consisting of static background scener
 
 .. include:: ../../data/test_assets/scenes/stage_floor1.stage_config.json
     :code: json
-
 
 Stage Mesh Handles And Types
 ----------------------------
@@ -72,9 +69,6 @@ Below are the handles and descriptors for various mesh assets used by a stage.
 "semantic_asset"
 	- string
 	- The name of the file describing the stage's semantic mesh.
-"house_filename"
-	- string
-	- The name of the file containing semantic type maps and hierarchy.
 "nav_asset"
 	- string
 	- The name of the file describing the NavMesh for this stage.
@@ -97,7 +91,7 @@ The tags below are used to build a coordinate frame for the stage, and will over
 Stage Physics and Object-related Parameters
 -------------------------------------------
 
-Below are stage-specific physical and object-related quantities.  These values will override similarly-named values specified in the Physics Manager Attributes.
+Below are stage-specific physical quantities.  These values will override similarly-named values specified in the Physics Manager Attributes.
 
 "scale"
 	- 3-vector
@@ -123,6 +117,7 @@ Below are stage-specific physical and object-related quantities.  These values w
 "requires_lighting"
 	- boolean
 	- Whether the stage should be rendered with lighting or flat shading.
+
 
 `Object Attributes`_
 ====================
@@ -202,6 +197,7 @@ Below are object-specific physical quantities.  These values will override simil
     - integer
 	- The semantic id assigned to objects made with this configuration.
 
+
 `Light Setup Attributes`_
 =========================
 Light Setup Attributes templates hold descriptive information for light setups into Habitat-Sim.  These file names should be formatted as follows:
@@ -233,3 +229,17 @@ The Light Setup attributes JSON should contain a single cell named "lights" that
 "position_model"
   - string
   - They frame to use to place the light. "global", meaning stage's origin, and "camera", meaning place relative to a (potentially moving) camera, are currently supported.
+
+
+`Scene Dataset Attributes`_
+===========================
+Scene Dataset Attributes describe the names and file locations of all the assets and configuration files that make up a Scene Dataset.  They are designed as a kind of index for a scene dataset, organizing the links to all the constituent components in the dataset into appropriate thematic categories, as well as providing an easy mechanism for customizing any of the configurations, all in a single file.
+
+These file names should be formatted as follows:
+
+ 	<scenedatasetname>.scene_dataset_config.json
+
+`An example of an appropriately configured Scene Dataset Configuration file can be found below <../../../data/test_assets/dataset_tests/test_dataset.scene_dataset_config.json>`_:
+
+.. include:: ../../data/test_assets/dataset_tests/test_dataset.scene_dataset_config.json
+    :code: json
