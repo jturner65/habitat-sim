@@ -125,31 +125,77 @@ def build_glb_scene_graph_dict(scene_graph, root_tag: str):
     return build_dict_from_children(transforms_tree, root_tag)
 
 
-def build_instance_config_json(template_name: str, transform: np.ndarray):
+def rotate_quat_by_quat(target_quat: np.ndarray, rot_quat: np.ndarray):
+    """Rotate target_quat by rot_quat"""
+
+    res_quat = np.zeros(4)
+    # not a real quat, just a numpy array
+    rq_vec = target_quat[1:]
+    rot_vec = rot_quat[1:]
+    w = target_quat[0] * rot_quat[0] - (np.dot(rq_vec, rot_vec))
+    vec = (
+        (target_quat[0] * rot_vec)
+        + (rot_quat[0] * rq_vec)
+        + (np.cross(rq_vec, rot_vec))
+    )
+
+    res_quat[0] = w
+    res_quat[1:] = vec
+    # normalize
+    res_quat /= np.linalg.norm(res_quat)
+    return res_quat
+
+
+def rotate_quat_by_halfpi(target_quat: np.ndarray):
+    """Rotate target_quat by pi/2 around x - correct blender gltf export issues."""
+
+    # pi/2 rotation around x axis
+    x_rot = np.zeros(4)
+    x_rot[0] = 0.707
+    x_rot[1] = -0.707
+    x_rot /= np.linalg.norm(x_rot)
+    # rotate roation quat by pi/2 around x axis
+    return rotate_quat_by_quat(target_quat, x_rot)
+
+
+def build_instance_config_json(
+    template_name: str,
+    transform: np.ndarray,
+    reframe_transform: Optional[bool] = False,
+    calc_scale: Optional[bool] = True,
+):
     """This function builds a dictionary holding json configuration data
     for a instance of either the stage or an object for scene instance configuration
     data.
     :param template_name: Th  name of the template representing the stage or object
     in the scene dataset.
     :param transform: 4x4 matrix transformation of the object in the scene instance
+    :param reframe_transform: Whether we need to
+    :param calc_scale: Whether or not to calculate and save the scale found in the transformation.
     :return dictionary holding json values to add to scene instance configuration.
     """
+
     translation = list(trimesh.transformations.translation_from_matrix(transform))
-    rotation = list(trimesh.transformations.quaternion_from_matrix(transform))
+    rotation_quat = trimesh.transformations.quaternion_from_matrix(transform)
+    if reframe_transform:
+        rotation_quat = rotate_quat_by_halfpi(rotation_quat)
+
+    rotation = list(rotation_quat)
+
     json_dict = {
         "template_name": template_name,
         "translation": translation,
         "rotation": rotation,
-        "translation_origin": "asset_local",
     }
-    scale = [
-        np.linalg.norm(transform[:3, 0]),
-        np.linalg.norm(transform[:3, 1]),
-        np.linalg.norm(transform[:3, 2]),
-    ]
-    # do not save near unit scale
-    if not np.allclose(scale, np.ones(3)):
-        json_dict["scale"] = scale
+    if calc_scale:
+        scale = [
+            np.linalg.norm(transform[:3, 0]),
+            np.linalg.norm(transform[:3, 1]),
+            np.linalg.norm(transform[:3, 2]),
+        ]
+        # do not save near unit scale
+        if not np.allclose(scale, np.ones(3)):
+            json_dict["scale"] = scale
     return json_dict
 
 
@@ -373,12 +419,8 @@ def extract_obj_mesh_from_scenegraph(
     object that might be connected via the scene graph.
     :param recurse_subnodes: Whether or not to recurse through node tree to leafs
     or just use the first level to build edge set.
-    :return: The new Scene object corresponding to scene_object_tag,
-    and the World-space transformation of the object withiin the parent Scene.
+    :return: The new Scene object corresponding to scene_object_tag.
     """
-    # world-space transformation of object in scene
-    # idx 1 is geometry
-    global_transform = scene_graph.graph.get(scene_object_tag)[0]
     # get scene_graph transformations hierarchy
     transforms_tree = scene_graph.graph.transforms
     # build set of nodes that should be excluded
@@ -486,7 +528,7 @@ def extract_obj_mesh_from_scenegraph(
     assert new_scene.is_valid, "Constructed {} scene object is not valid!".format(
         scene_object_tag
     )
-    return new_scene, global_transform
+    return new_scene
 
 
 def get_node_set_recurse(transforms_tree, exclude_nodes, root_node):
@@ -641,12 +683,21 @@ def extract_light_from_json(
 def extract_lighting_from_gltf(scene_filename_glb: str, lights_tag: str):
 
     # Get json from glb file
+    # TODO : translation/rotation information for lights to our format of position/direction
+    print(
+        "glb_mesh_tools.extract_lighting_from_gltf (Still WIP) : {}".format(
+            scene_filename_glb
+        )
+    )
     base_json = extract_json_from_glb(scene_filename_glb)
     # if nothing found, return empty res
     if len(base_json) == 0:
         return {}
     for k, v in base_json.items():
-        print("K: {} : len V : {}".format(k, len(v)))
+        if hasattr(v, "__len__"):
+            print("K: {} : len V : {}".format(k, len(v)))
+        else:
+            print("K: {} : V : {}".format(k, v))
     # list of lights - accessed in scene_graph by idx
     lights_list = base_json["extensions"]["KHR_lights_punctual"]["lights"]
     # print("Number of lights: {}".format(len(lights_list)))
