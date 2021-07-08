@@ -6,363 +6,395 @@
 
 import os
 from collections import OrderedDict, defaultdict
-from typing import Dict, Optional, Set
+from typing import Any, Dict, Optional, Tuple
 
 import config_utils as ut
 import glb_mesh_tools as gut
 
 ###
 # JSON Configuration file for running this application.
-MESH_DECON_CONFIG_JSON = "mesh_decon_AI2Thor.json"
+# MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_AI2Thor.json"
+MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD.json"
+# MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD_baked.json"
 
 
-####
-# Dataset Source directories
-DATASET_SRC_DIR = os.path.join(os.path.expanduser("~"), "Documents/AI2Thor/")
-# Scene Source directory
-SCENES_SRC_DIR = DATASET_SRC_DIR + "scenes/"
+def build_default_configs():
+    """This function builds a dictionary with default settings for the
+    various functionalitys this script supports.  These are overridden
+    by any values specified in JSON file pointed to by
+    MESH_DECON_CONFIG_JSON_FILENAME.
+    """
 
-####
-# Dataset specs
-# Name/handle for scene dataset - used to name Scene Dataset config output
-SCENE_DATASET_NAME = "AI2Thor"
-# Tags in scene glbs representing the stage, object and lighting subtrees
-STAGE_TAG = "Structure"
-OBJECTS_TAG = "Objects"
-LIGHTING_TAG = "Lighting"
+    default_configs = {}
+    # Name of the dataset
+    default_configs["dataset_name"] = "AI2Thor"
+    # whether or not the source directory for the data used by this script is relative to home
+    default_configs["dataset_src_rel_to_home"] = True
+    # the full source directory for the data used by this dataset, either relative to home or relative to cwd
+    default_configs["dataset_src_subdir"] = "Documents/AI2Thor/"
 
-# This is a dict of sets to be used to include nodes in the stage scene
-# graph that are not directly linked to the stage scene_graph. The key of
-# the dict is the name of the node that should be searched, and value is
-# a set of lower-case substrings (for case-insensitive matching) of
-# successor node names that should be included in the stage construction.
-# The nodes whose names contain these substrings (And their subtrees) will
-# be added to the stage and not spun off as individual objects.
-STAGE_INCLUDE_OBJ_DICT = {
-    OBJECTS_TAG: {
-        "floor_",
-        "window",
-        "a-frameshelf",
-        "blinds",
-        "burner",
-        "cabinet",
-        "counter",
-        "curtains",
-        "faucet",
-        "lightfixture",
-        "lightswitch",
-        "shelf",
-        "shelfve",
-        "showercurtain",
-        "showerdoor",
-        "showerglass",
-        "showerhead",
-        "sink",
-        "stoveknob",
-        "toilet_",
-        "toiletpaperhanger",
-        "towelholder",
+    # the subdirectory for the source scenes, relative to dataset_src_dir
+    default_configs["scenes_src_subdir"] = "scenes/"
+    # the subdirectory for the source of objects, relative to dataset_src_dir
+    default_configs["objects_src_subdir"] = "objects/"
+
+    # whether the output destination directory is relative to home or not
+    default_configs["dataset_dest_rel_to_home"] = True
+    # the full destination directory for the data written by this script, either relative to home or relative
+    # to cwd.  All pathing in written configs will be relaive to this directory
+    default_configs["dataset_dest_subdir"] = "Documents/AI2Thor/scene_dataset/"
+
+    # subdirectory within dataset_dest_dir for output of glbs
+    default_configs["dataset_glb_dest_subdir"] = "."
+    # subdirectory within dataset_dest_dir for output of configs
+    default_configs["dataset_config_dest_subdir"] = "configs/"
+
+    # whether or not to build stage glbs from source scenes
+    default_configs["build_stage_glbs"] = True
+    # subdirectory within dataset_glb_dest_subdir for saving stage glbs
+    default_configs["stage_glb_dest_subdir"] = "stages/"
+    # whether or not to build object glbs from source scenes
+    default_configs["build_object_glbs"] = True
+    # subdirectory within dataset_glb_dest_subdir for object glbs
+    default_configs["obj_glb_dest_subdir"] = "objects/"
+
+    # whether or not to save stage configs for each scene
+    default_configs["build_stage_configs"] = True
+    # subdirectory within dataset_config_dest_subdir for stage configs to be written
+    default_configs["stage_config_dest_subdir"] = "stages/"
+    # whether or not to save object configs for objects found in scenes
+    default_configs["build_object_configs"] = True
+    # subdirectory within dataset_config_dest_subdir for object configs to be written
+    default_configs["obj_config_dest_subdir"] = "objects/"
+    # whether or not to build lighting configs based on lighting found in scenes
+    default_configs["build_lighting_configs"] = True
+    # subdirectory within dataset_config_dest_subdir for lighting configs to be written
+    default_configs["light_config_dest_subdir"] = "lighting/"
+
+    # whether or not to build scene instance configs
+    default_configs["build_scene_configs"] = True
+    # subdirectory within dataset_config_dest_subdir for scene instance configs to be written
+    default_configs["scene_instance_dest_subdir"] = "scenes/"
+
+    # whether or not to save object instances in scene instance configs
+    default_configs["save_object_instances"] = True
+    # whether or not we should save articulated object instances in scene config
+    default_configs["save_articulated_object_instances"] = False
+
+    # whether to match object name refs in object config synth to objects found in obj_glb_dest_subdir.
+    # Used when synthesizing scene instances for scenes with existing object glb files,
+    default_configs["match_object_names"] = False
+
+    # dictionary keyed by some substring of file name, value is stage names to use for stage
+    # instance refs in scene instance files. Search for the keys within scene name,
+    # and use the values as the stage to ref
+    default_configs["stage_instance_file_tag"] = {}
+
+    # tag to insert in every scene instance attributes to reference the default lighting
+    default_configs["default_lighting_tag"] = ""
+
+    # whether to apply a transformation to the object's transformation before
+    # calculating translation and rotation for saving in scene instance
+    default_configs["apply_object_transform"] = False
+
+    # tag within scene graph to find where components of the stage reside
+    default_configs["stage_tag"] = "Structure"
+    # tag within scene graph to find where individual objects reside
+    default_configs["objects_tag"] = "Objects"
+    # tag within scene graph to find where lighting definitions reside
+    default_configs["lighting_tag"] = "Lighting"
+
+    # whether or not to specify that all objects in the scene should be static in scene instance
+    default_configs["objects_all_static"] = False
+
+    # CURRENTLY ONLY REPLICA_CAD : specifies file name tag look-up and scene instance
+    # articulated object mapping to use for each range of scenes
+    default_configs["ao_instance_mappings"] = {}
+
+    # This is a dict of sets to be used to include nodes in the stage scene
+    # graph that are not directly linked to the stage scene_graph. The key of
+    # the dict is the name of the node that should be searched (such as the objects_tag), and value is
+    # a set of lower-case substrings (for case-insensitive matching) of
+    # successor node names that should be included in the stage construction.
+    # The nodes whose names contain these substrings (And their subtrees) will
+    # be added to the stage and not spun off as individual objects.
+    default_configs["stage_include_obj_substr"] = {}
+
+    # Objects specified in the "stage_include_obj_substr" dict are, by default, ignored
+    # when objects are extracted from the scene graph.  The "obj_override_names"
+    # dict will provide lowercase substrs of object node names (for case insensitive
+    # matching) that should be explicitly included that might otherwise be ignored on
+    # object extraction.  These objects will also not be included in the stage.
+    default_configs["obj_override_names"] = ["floor_lamp"]
+
+    # This is a set of substrings (case-insensitive) of node names for
+    # nodes that should be excluded from object synthesis
+    # Make "obj_exclude_names" an empty set to not ignore anything
+    default_configs["obj_exclude_names"] = []
+
+    # map of URDF model names to object node names to map objects/locations to AOs.
+    # These should be excluded from regular object extraction, to prevent double-dipping
+    default_configs["ao_include_obj_names"] = {}
+
+    # This is a set of lowercase substrings of names of objects that
+    # should be specified as static in the scene instance upon creation
+    # when an otherwise dynamic scene is being instantiated.
+    # This should include large furnishings and other obstacles that we
+    # do not wish to simulate dynamically
+    default_configs["obj_created_static"] = []
+
+    # This is a set of lowercase substrings of names of objects that
+    # should be specified as dynamic in the scene instance upon creation
+    # when a dynamic scene is being instantiated.  This is intended to provide
+    # an easy override for when all objects are specified to be static
+    default_configs["obj_created_dynamic"] = []
+
+    # whether or not to export and save the source scene glbs as gltfs, for diagnostic purposes
+    default_configs["export_glbs_as_gltf"] = False
+    # subdirectory relative to dataset_dest_dir, where gltf exports of scenes should be saved
+    default_configs["gltf_export_subdir"] = "tmpGLTFScenes/"
+
+    # whether to perform a diagnostic investigation of the source scene graphs
+    # and save the hierarchy of node names as a json file
+    default_configs["save_scenegraph_hierarchy"] = True
+    # subdirectory relative to dataset dest where to save the scene graph hieararchy output configs["scenegraph_diagnostics_dir"]
+    default_configs["scenegraph_diagnostics_subdir"] = "scene_graph_diagnostics/"
+
+    tmp_dflt_attrs = {}
+    tmp_dflt_attrs["stages"] = {
+        "requires_lighting": "true",
+        "up": [0, 1, 0],
+        "front": [0, 0, -1],
+        "origin": [0, 0, 0],
     }
-}
-
-# Objects specified in the STAGE_INCLUDE_OBJ_DICT are, by default, ignored
-# when objects are extracted from the scene graph.  This dict will provide
-# lowercase substrs of object node names (for case insensitive matching)
-# that should be explicitly included that might otherwise be ignored on
-# object extraction.  These objects will also not be included in the stage.
-OBJECT_OVERRIDE_SUBNODES = {"floor_lamp"}
-
-# This is a set of substrings (case-insensitive) of node names for
-# nodes that should be excluded from object synthesis
-# Make OBJECT_EXCLUDE_SUBNODES an empty set to not ignore anything
-OBJECT_EXCLUDE_SUBNODES = {
-    "boundingbox",
-    "colliders",
-    "visibilitypoints",
-    "hideandseek",
-    "trigger",
-}
-STAGE_EXCLUDE_SUBNODES = {STAGE_TAG: OBJECT_EXCLUDE_SUBNODES}
-STAGE_EXCLUDE_SUBNODES[OBJECTS_TAG] = OBJECT_OVERRIDE_SUBNODES
-
-# This is a set of lowercase substrings of names of objects that
-# should be specified as static in the scene instance upon creation
-# when an otherwise dynamic scene is being instantiated.
-# This should include large furnishings and other obstacles that we
-# do not wish to simulate dynamically
-OBJECTS_CREATED_STATIC = {
-    "bed",
-    "bench",
-    "chair",
-    "cloth",
-    "decor",
-    "decorative",
-    "desk",
-    "dresser",
-    "fridge",
-    "lamp",
-    "microwave",
-    "mirror",
-    "nightstand",
-    "ottoman",
-    "painting",
-    "poster",
-    "safe",
-    "sofa",
-    "tvstand",
-    "television",
-    "table",
-}
-
-
-####
-# Output directories for deconned objects
-# Base destination directory
-DEST_DIR = DATASET_SRC_DIR + "scene_dataset/"
-
-###
-# Scene instance
-# Whether or not to build the scene instance configuration files
-BUILD_SCENE_CONFIGS = True
-# Directory to save synthesized scene instance configuration JSONs
-SCENE_INSTANCE_OUTPUT_DIR = os.path.join(DEST_DIR, "scenes/")
-
-###
-# STAGE
-# Whether or not to build the JSON config files for stages
-BUILD_STAGE_CONFIGS = True
-# Whether or not to save the stage GLB file
-BUILD_STAGE_GLBS = True
-# Directory to save stage GLB files and stage configs (if used)
-STAGES_OUTPUT_DIR = os.path.join(DEST_DIR, "stages/")
-
-###
-# OBJECTS
-# This value denotes that all object instances should be set to static in
-# scene instance implementation.
-OBJECTS_ALL_STATIC = False
-# Whether or not to build the JSON config files for objects
-BUILD_OBJECT_CONFIGS = True
-# Whether or not to build the object GLB files
-BUILD_OBJECT_GLBS = True
-# Directory to save object files and configs
-OBJECTS_OUTPUT_DIR = os.path.join(DEST_DIR, "objects/")
-
-###
-# Lighting
-# Whether or not to build the lighting configurations
-# Lighting requires pygltflib to be installed, so if not present
-# will not succeed
-BUILD_LIGHTING_CONFIGS = False
-# Directory to save lighting configuration JSONs
-LIGHTING_CONFIG_OUTPUT_DIR = os.path.join(DEST_DIR, "lighting/")
-
-
-# Export source glb scenes as gltf scenes.  This
-# requires pygltflib to be installed, so if not present,
-# will not work.
-SAVE_SRC_SCENES_AS_GLTF = False
-# Where to save the synthesized gltf files
-GLTF_EXPORT_DIR = DATASET_SRC_DIR + "tmpGLTFScenes/"
-
-BUILD_SG_DIAGNOSTIC = True
-# Directory to save scene graph json structure - for diagnostics
-# Don't put in dataset directory since this isn't used by habitat
-SG_OUTPUT_DIR = os.path.join(DATASET_SRC_DIR, "scene_graph_diagnostics/")
-
-# These are values to use for default attributes in the Scene Dataset configuration
-# file.
-DEFAULT_ATTRIBUTES_TEMPLATE = {
-    "stages": {
+    tmp_dflt_attrs["objects"] = {
         "requires_lighting": "true",
         "up": [0, 1, 0],
         "front": [0, 0, -1],
         "origin": [0, 0, 0],
-    },
-    "objects": {
-        "requires_lighting": "true",
-        "up": [0, 1, 0],
-        "front": [0, 0, -1],
-        "origin": [0, 0, 0],
-    },
-    "scene_instances": {
+    }
+    tmp_dflt_attrs["scene_instances"] = {
         "translation_origin": "asset_local",
         "default_lighting": "",
-    },
-    "light_setups": {},
-}
+    }
+    tmp_dflt_attrs["light_setups"] = {}
+
+    # default attributes values to be used for types in the scene dataset config
+    default_configs["default_attributes"] = tmp_dflt_attrs
+
+    return default_configs
 
 
-def load_decon_global_config_values(mesh_decon_config_json):
-    """This function will load values for the configuration globals used by this application to
+def load_decon_global_config_values(config_json: str):
+    """This function will load values for the configuration values used by this application to
     deconstruct the scene glbs into constituent stages and objects and synthesize the appropriate
     JSON configuration files for the results.
     """
-    # Load configuration describing the scene meshes we wish to deconstruct into stages and objects
-    decon_configs = ut.load_json_into_dict(mesh_decon_config_json)
-    if len(decon_configs) == 0:
-        return decon_configs
-    # If nothing loaded, proceed through decon with already specified global values
-    if len(decon_configs) == 0:
-        return {}
-    if "dataset_name" in decon_configs:
-        global SCENE_DATASET_NAME
-        SCENE_DATASET_NAME = decon_configs["dataset_name"]
-    if "dataset_src_subdir" in decon_configs:
-        global DATASET_SRC_DIR
-        if (
-            "dataset_rel_to_home" in decon_configs
-            and decon_configs["dataset_rel_to_home"]
-        ):
-            home = os.path.expanduser("~")
-        else:
-            home = ""
-        DATASET_SRC_DIR = os.path.join(home, "Documents/AI2Thor/")
+    # get default values
+    configs = build_default_configs()
 
-    if "scenes_src_subdir" in decon_configs:
-        scene_subdir = decon_configs["scenes_src_subdir"]
+    # Load configuration describing the scene meshes we wish to deconstruct into stages and objects
+    loaded_configs = ut.load_json_into_dict(config_json)
+
+    # map values from file to existing default configs
+    for k, v in loaded_configs.items():
+        # move file-based configs into defaults
+        if isinstance(v, dict):
+            if k not in configs:
+                configs[k] = v
+            else:
+                tmp_dict = {}
+                for k1, v1 in configs[k].items():
+                    tmp_dict[k1] = v1
+                # overwrite defaults
+                for k1, v1 in v.items():
+                    tmp_dict[k1] = v1
+                configs[k] = tmp_dict
+        elif isinstance(v, str):
+            if "true" in v:
+                configs[k] = True
+            elif "false" in v:
+                configs[k] = False
+            else:
+                configs[k] = v.strip()
+        else:
+            configs[k] = v
+
+    #######################
+    # build appropriate source directory and subdirs
+    if "dataset_src_rel_to_home" in configs:
+        configs["dataset_src_dir"] = os.path.join(
+            os.path.expanduser("~"), configs["dataset_src_subdir"]
+        )
     else:
-        scene_subdir = "scenes/"
+        configs["dataset_src_dir"] = configs["dataset_src_subdir"]
 
     # Aggregate Scene GLBS source directory
-    global SCENES_SRC_DIR
-    SCENES_SRC_DIR = os.path.join(DATASET_SRC_DIR, scene_subdir)
+    configs["scenes_src_dir"] = os.path.join(
+        configs["dataset_src_dir"], configs["scenes_src_subdir"]
+    )
+    # Objects source GLBS directory (potentially used for verification/matching from object nodes)
+    configs["objects_src_dir"] = os.path.join(
+        configs["dataset_src_dir"], configs["objects_src_subdir"]
+    )
 
-    # Load the tags referencing the node names in the scene graph corresponding to the branches containing
-    # stage, object, and lighting information
-    if "stage_tag" in decon_configs:
-        global STAGE_TAG
-        STAGE_TAG = decon_configs["stage_tag"].strip()
-    if "objects_tag" in decon_configs:
-        global OBJECTS_TAG
-        OBJECTS_TAG = decon_configs["objects_tag"].strip()
-    if "lighting_tag" in decon_configs:
-        global LIGHTING_TAG
-        LIGHTING_TAG = decon_configs["lighting_tag"].strip()
+    ##########################
+    # build appropriate destination directory and other subdirs
+    # and create them on disk if appropriate
+    if "dataset_dest_rel_to_home" in configs:
+        configs["dataset_dest_dir"] = os.path.join(
+            os.path.expanduser("~"), configs["dataset_dest_subdir"]
+        )
+    else:
+        configs["dataset_dest_dir"] = configs["dataset_dest_subdir"]
 
-    # This references nodes from the objects subtree that should be merged into the
-    # stage and not treated as individual objects
-    if "stage_include_obj_substr" in decon_configs:
-        global STAGE_INCLUDE_OBJ_DICT
-        # remove any default values
-        STAGE_INCLUDE_OBJ_DICT.clear()
-        # set these values specific for objects subbranch
-        STAGE_INCLUDE_OBJ_DICT[OBJECTS_TAG] = decon_configs["stage_include_obj_substr"]
+    # Build destination directory, if dne
+    os.makedirs(configs["dataset_dest_dir"], exist_ok=True)
 
-    global STAGE_EXCLUDE_SUBNODES
-    # specify the substring names of objects that we wish to retain as
-    # objects but may otherwise be swept up into the stage from STAGE_INCLUDE_OBJ_DICT.
-    if "obj_override_names" in decon_configs:
-        global OBJECT_OVERRIDE_SUBNODES
-        OBJECT_OVERRIDE_SUBNODES = decon_configs["obj_override_names"]
-        STAGE_EXCLUDE_SUBNODES[OBJECTS_TAG] = OBJECT_OVERRIDE_SUBNODES
+    ##########################
+    # output directories creation
+    # glbs
+    configs["dataset_glb_dest_dir"] = os.path.join(
+        configs["dataset_dest_dir"], configs["dataset_glb_dest_subdir"]
+    )
+    if configs["build_stage_glbs"] or configs["build_object_glbs"]:
+        # only attempt to make directory if we will be writing glb files
+        os.makedirs(configs["dataset_glb_dest_dir"], exist_ok=True)
 
-    # Substrings that denote nodes in the objects subtree that we do not want to include
-    # in the resultant objects we create, either objects or components of objects
-    if "obj_exclude_names" in decon_configs:
-        global OBJECT_EXCLUDE_SUBNODES
-        OBJECT_EXCLUDE_SUBNODES = decon_configs["obj_exclude_names"]
-        STAGE_EXCLUDE_SUBNODES = {STAGE_TAG: OBJECT_EXCLUDE_SUBNODES}
+    # stage glbs dir
+    configs["stage_glb_dest_dir"] = os.path.join(
+        configs["dataset_glb_dest_dir"], configs["stage_glb_dest_subdir"]
+    )
+    if configs["build_stage_glbs"]:
+        os.makedirs(configs["stage_glb_dest_dir"], exist_ok=True)
+    # object glbs
+    configs["obj_glb_dest_dir"] = os.path.join(
+        configs["dataset_glb_dest_dir"], configs["obj_glb_dest_subdir"]
+    )
+    if configs["build_object_glbs"]:
+        os.makedirs(configs["obj_glb_dest_dir"], exist_ok=True)
 
-    # Substrings denoting the object nodes that should be instanced as static within scene
-    # instance config
-    if "obj_created_static" in decon_configs:
-        global OBJECTS_CREATED_STATIC
-        OBJECTS_CREATED_STATIC = decon_configs["obj_created_static"]
+    # configs
+    configs["dataset_config_dest_dir"] = os.path.join(
+        configs["dataset_dest_dir"], configs["dataset_config_dest_subdir"]
+    )
+    if (
+        configs["build_stage_configs"]
+        or configs["build_object_configs"]
+        or configs["build_lighting_configs"]
+        or configs["build_scene_configs"]
+    ):
+        os.makedirs(configs["dataset_config_dest_dir"], exist_ok=True)
+    # scene instance
+    configs["scene_instance_dest_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], configs["scene_instance_dest_subdir"]
+    )
+    if configs["build_scene_configs"]:
+        os.makedirs(configs["scene_instance_dest_dir"], exist_ok=True)
 
-    # Default attribute values for the loaded dataset.  These will be used to intialize all
-    # configs as they are created, before any stage or object-specific config values are read in
-    # from disk
-    if "default_attributes" in decon_configs:
-        dflt_vals_dict = decon_configs["default_attributes"]
-        global DEFAULT_ATTRIBUTES_TEMPLATE
-        # all sub-values may not be present
-        for k, v in dflt_vals_dict.items():
-            DEFAULT_ATTRIBUTES_TEMPLATE[k] = v
+    # stage configs
+    configs["stage_config_dest_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], configs["stage_config_dest_subdir"]
+    )
+    if configs["build_stage_configs"]:
+        os.makedirs(configs["stage_config_dest_dir"], exist_ok=True)
 
-    return decon_configs
+    # object configs
+    configs["obj_config_dest_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], configs["obj_config_dest_subdir"]
+    )
+    if configs["build_object_configs"]:
+        os.makedirs(configs["obj_config_dest_dir"], exist_ok=True)
 
-
-def build_required_directories():
-    """This function will re-make, and create if appropriate, the destination directories
-    used by the application to save the various results.
-    """
-    ####
-    # Output directories for deconned objects
-    # Base destination directory
-    global DEST_DIR
-    DEST_DIR = DATASET_SRC_DIR + "scene_dataset/"
-    os.makedirs(DEST_DIR, exist_ok=True)
-
-    global STAGES_OUTPUT_DIR
-    # Directory to save stage GLB files and stage configs (if used)
-    STAGES_OUTPUT_DIR = os.path.join(DEST_DIR, "stages/")
-    if BUILD_STAGE_CONFIGS or BUILD_STAGE_GLBS:
-        os.makedirs(STAGES_OUTPUT_DIR, exist_ok=True)
-
-    global OBJECTS_OUTPUT_DIR
-    # Directory to save object files and configs
-    OBJECTS_OUTPUT_DIR = os.path.join(DEST_DIR, "objects/")
-    if BUILD_OBJECT_CONFIGS or BUILD_OBJECT_GLBS:
-        os.makedirs(OBJECTS_OUTPUT_DIR, exist_ok=True)
-
-    # Directory to save lighting configuration JSONs
-    global LIGHTING_CONFIG_OUTPUT_DIR
-    LIGHTING_CONFIG_OUTPUT_DIR = os.path.join(DEST_DIR, "lighting/")
-    if BUILD_LIGHTING_CONFIGS:
-        os.makedirs(LIGHTING_CONFIG_OUTPUT_DIR, exist_ok=True)
-
-    # Directory to save synthesized scene instance configuration JSONs
-    global SCENE_INSTANCE_OUTPUT_DIR
-    SCENE_INSTANCE_OUTPUT_DIR = os.path.join(DEST_DIR, "scenes/")
-    if BUILD_SCENE_CONFIGS:
-        os.makedirs(SCENE_INSTANCE_OUTPUT_DIR, exist_ok=True)
+    # lighting configs
+    configs["light_config_dest_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], configs["light_config_dest_subdir"]
+    )
+    if configs["build_lighting_configs"]:
+        os.makedirs(configs["light_config_dest_dir"], exist_ok=True)
 
     # Export glb scenes as gltf scenes
-    global GLTF_EXPORT_DIR
-    GLTF_EXPORT_DIR = DATASET_SRC_DIR + "tmpGLTFScenes/"
-    if SAVE_SRC_SCENES_AS_GLTF:
-        os.makedirs(GLTF_EXPORT_DIR, exist_ok=True)
+    configs["light_config_dest_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], configs["light_config_dest_subdir"]
+    )
+    if configs["build_lighting_configs"]:
+        os.makedirs(configs["light_config_dest_dir"], exist_ok=True)
+
+    configs["gltf_export_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], configs["gltf_export_subdir"]
+    )
+    if configs["export_glbs_as_gltf"]:
+        os.makedirs(configs["gltf_export_dir"], exist_ok=True)
 
     # Directory to save scene graph json structure - for diagnostics
     # Don't put in dataset directory since this isn't used by habitat
-    global SG_OUTPUT_DIR
-    SG_OUTPUT_DIR = os.path.join(DATASET_SRC_DIR, "scene_graph_diagnostics/")
-    if BUILD_SG_DIAGNOSTIC:
-        os.makedirs(SG_OUTPUT_DIR, exist_ok=True)
+    configs["scenegraph_diagnostics_dir"] = os.path.join(
+        configs["dataset_config_dest_dir"], "scene_graph_diagnostics/"
+    )
+    if configs["save_scenegraph_hierarchy"]:
+        os.makedirs(configs["scenegraph_diagnostics_dir"], exist_ok=True)
+
+    return configs
 
 
 def extract_stage_from_scene(
     scene_graph,
     scene_name_base: str,
-    stage_dest_dir: str,
-    stage_tag: str,
-    include_obj_dict: Dict[str, Set[str]],
-    build_configs: bool,
+    configs: Dict[str, Any],
 ):
-    # Extract the stage mesh and its transform in the world
-    stage_graph, stage_transform = gut.extract_obj_mesh_from_scenegraph(
-        scene_graph, stage_tag, "world", include_obj_dict, STAGE_EXCLUDE_SUBNODES, True
-    )
-    # display stage
-    # stage_graph.show(viewer="gl")
+    # the scenegraph tag for where the stage components can be found
+    stage_tag = configs["stage_tag"]
+    # objects in the objects-tag subgraph that should be included in the stage and not treated as objects
+    include_obj_dict = {}
+    include_obj_dict[configs["objects_tag"]] = configs["stage_include_obj_substr"]
+
+    # subnodes to exclude, either because they should be objects, or because they belong to
+    # neither objects nor stages
+    exclude_subnode_dict = {}
+    exclude_subnode_dict[configs["objects_tag"]] = configs["obj_override_names"]
+    exclude_subnode_dict[stage_tag] = configs["obj_exclude_names"]
+
+    # world-space transformation of stage node
+    stage_transform = scene_graph.graph.get(stage_tag)[0]
+
     # print("Stage global transform \n{}".format(stage_transform))
     # base stage name - fully qualified directories + stub
-    stage_name_base = scene_name_base + "_stage"
-    stage_dest_filename_base = os.path.join(stage_dest_dir, stage_name_base)
+    stage_name_base = scene_name_base  # + "_stage"
+
+    stage_glb_dest_filename_base = os.path.join(
+        configs["stage_glb_dest_dir"], stage_name_base
+    )
 
     # export stage mesh result to glb file
-    stage_dest_filename = stage_dest_filename_base + ".glb"
-    stage_graph.export(stage_dest_filename)
+    stage_glb_dest_filename = stage_glb_dest_filename_base + ".glb"
 
-    if build_configs:
+    if configs["build_stage_glbs"]:
+        # Extract the stage mesh and its transform in the world
+        stage_graph = gut.extract_obj_mesh_from_scenegraph(
+            scene_graph,
+            stage_tag,
+            "world",
+            include_obj_dict,
+            exclude_subnode_dict,
+            True,
+        )
+        # display stage
+        # stage_graph.show(viewer="gl")
+
+        stage_graph.export(stage_glb_dest_filename)
+
+    if configs["build_stage_configs"]:
         # get relative path
+        stage_config_dest_dir = configs["stage_config_dest_dir"]
         rel_stage_asset_filename = ut.transform_path_relative(
-            stage_dest_filename, stage_dest_dir
+            stage_glb_dest_filename, stage_config_dest_dir
+        )
+        stage_config_dest_filename_base = os.path.join(
+            stage_config_dest_dir, stage_name_base
         )
         # set up stage configuration file
         stage_config_filename = (
-            stage_dest_filename_base + ut.CONFIG_EXTENSIONS["stage"] + ".json"
+            stage_config_dest_filename_base + ut.CONFIG_EXTENSIONS["stage"] + ".json"
         )
         # print("Relative stage path :{}".format(rel_stage_asset_filename))
         stage_config_json_dict = {
@@ -375,90 +407,274 @@ def extract_stage_from_scene(
     stage_instance_dict = gut.build_instance_config_json(
         stage_name_base, stage_transform
     )
+    stage_instance_dict["translation_origin"] = "COM"
+
+    if len(configs["stage_instance_file_tag"]) != 0:
+        # mapping is provided to map scene name to prebuilt/predefined stage names
+        replace_stage_dict = configs["stage_instance_file_tag"]
+        for k, v in replace_stage_dict.items():
+            if k.lower() in stage_name_base.lower():
+                stage_instance_dict["template_name"] = v
+                break
     return stage_instance_dict
 
 
 def extract_objects_from_scene(
     scene_graph,
-    scene_name_base: str,
-    object_dest_dir: str,
-    objects_tag: str,
-    exclude_obj_dict,
-    build_configs: bool,
+    configs: Dict[str, Any],
+    match_names_dict: Dict[str, Tuple[str, str, str]],
 ):
+    # the scenegraph subnode name for where the object components can be found
+    objects_tag = configs["objects_tag"]
+    # objects in the objects-tag subgraph that should be included in the stage and not treated as objects
+    exclude_obj_dict = {}
+    exclude_obj_dict[configs["objects_tag"]] = configs["stage_include_obj_substr"]
+
+    build_glbs = configs["build_object_glbs"]
+    build_configs = configs["build_object_configs"]
+
+    # init objects
     objects_raw = scene_graph.graph.transforms.children_dict[objects_tag]
     object_instance_configs = []
     objects = []
 
     # exclude object names that have been added to stage already
-    # get set of object names that are ref'ed by objects tag
+    # get set of object names that are ref'ed by objects tag -
+    # these were included in stage already
+
     excl_str_set = exclude_obj_dict[objects_tag]
+    # get set of object names that we wish to exclude -
+    # these are neither objects nor stage components
+    obj_excl_str_set = configs["obj_exclude_names"]
     for obj_name in objects_raw:
         obj_is_valid = True
         for substr in excl_str_set:
             if substr.lower() in obj_name.lower():
                 obj_is_valid = False
                 break
-        # check if invalid object should be overridden
+        # check if invalid object specification should be overridden
         if not obj_is_valid:
-            for substr in OBJECT_OVERRIDE_SUBNODES:
+            for substr in configs["obj_override_names"]:
                 if substr.lower() in obj_name.lower():
                     obj_is_valid = True
                     break
+        # if specified as valid by here, check if not explicitly excluded
+        if obj_is_valid:
+            for substr in obj_excl_str_set:
+                if substr.lower() in obj_name.lower():
+                    obj_is_valid = False
+                    break
         if obj_is_valid:
             objects.append(obj_name)
+    from collections import defaultdict
+
+    # set objects motion type
+    default_str = "STATIC" if configs["objects_all_static"] else "DYNAMIC"
+    # override motion type
+    obj_motion_type_dict = defaultdict(lambda: default_str)
+    obj_created_static = configs["obj_created_static"]
+    for obj_name in objects:
+        for obj_substr in obj_created_static:
+            if obj_substr.lower() in obj_name.lower():
+                obj_motion_type_dict[obj_name] = "STATIC"
+    # override now for objects in "obj_created_dynamic" list if all static specified
+    if configs["objects_all_static"]:
+        obj_created_dynamic = configs["obj_created_dynamic"]
+        for obj_name in objects:
+            for obj_substr in obj_created_dynamic:
+                if obj_substr.lower() in obj_name.lower():
+                    obj_motion_type_dict[obj_name] = "DYNAMIC"
     #
     for obj_name in objects:
         obj_exclude_dict = {}  # dict(exclude_obj_dict)
-        # exclude elements in objects that do not correspond to geometry
-        # obj_exclude_dict[obj_name] = OBJECT_EXCLUDE_SUBNODES
-        # extract the object "scene" and its global transform
-        # (scene is the mesh + other assets to save for object glb)
-        object_scene, obj_transform = gut.extract_obj_mesh_from_scenegraph(
-            scene_graph, obj_name, objects_tag, {}, obj_exclude_dict, False
-        )
-        if object_scene is None:
-            continue
 
-        # TODO  isolate and extract collision mesh if present?
+        # make the file name base to reference the object from the mesh instance name
         obj_name_base = obj_name
-        obj_dest_filename_base = os.path.join(object_dest_dir, obj_name_base)
+        # ReplicaCAD only (so far) - match instance object mesh name with existing object names instead
+        # so that scene_instance references actual object correctly
+        if len(match_names_dict) > 0:
+            for k, _ in match_names_dict.items():
+                if k.lower() in obj_name_base.lower():
+                    obj_name_base = k
+                    break
+
+        obj_glb_dest_filename_base = os.path.join(
+            configs["obj_glb_dest_dir"], obj_name_base
+        )
         # build file names for output
-        obj_dest_filename = obj_dest_filename_base + ".glb"
+        obj_glb_dest_filename = obj_glb_dest_filename_base + ".glb"
         # print("Object dest filename : {}".format(obj_dest_filename))
-        # save extracted object mesh
-        object_scene.export(obj_dest_filename)
+
+        if build_glbs:
+            # extract the object "scene" for obj_name object instance in mesh
+            # (scene is the mesh + other assets to save for object glb)
+            object_scene = gut.extract_obj_mesh_from_scenegraph(
+                scene_graph, obj_name, objects_tag, {}, obj_exclude_dict, False
+            )
+            if object_scene is None:
+                continue
+
+            object_scene.export(obj_glb_dest_filename)
+
+        # world-space transformation of stage node
+        obj_transform = scene_graph.graph.get(obj_name)[0]
+
+        # ReplicaCAD Only - improperly named object
+        # build object instance info to be used in scene instance config to place object
+        obj_instance_dict = gut.build_instance_config_json(
+            obj_name_base,
+            obj_transform,
+            reframe_transform=configs["apply_object_transform"],
+            calc_scale=False,
+        )
+        obj_instance_dict["motion_type"] = obj_motion_type_dict[obj_name]
+        obj_instance_dict["translation_origin"] = "COM"
+
+        object_instance_configs.append(obj_instance_dict)
+
+        # set object instance motion type
 
         if build_configs:
+            # build a config stub for this object with derived render and collision asset names
             rel_obj_dest_filename = ut.transform_path_relative(
-                obj_dest_filename, object_dest_dir
+                obj_glb_dest_filename, configs["obj_config_dest_dir"]
             )
             obj_config_json_dict = {
                 "render_asset": rel_obj_dest_filename,
                 "collision_asset": rel_obj_dest_filename,
             }
-
+            obj_config_filename_base = os.path.join(
+                configs["obj_config_dest_dir"], obj_name_base
+            )
             obj_config_filename = (
-                obj_dest_filename_base + ut.CONFIG_EXTENSIONS["object"] + ".json"
+                obj_config_filename_base + ut.CONFIG_EXTENSIONS["object"] + ".json"
             )
             # save object config
             ut.mod_json_val_and_save(("", obj_config_filename, obj_config_json_dict))
-        # build object instance info to be used in scene instance config to place object
-        obj_instance_dict = gut.build_instance_config_json(obj_name_base, obj_transform)
-        object_instance_configs.append(obj_instance_dict)
 
     return object_instance_configs
+
+
+def extract_articulated_objects_from_scene(
+    scene_graph, scene_name_base: str, configs: Dict[str, Any]
+):
+    # objects node tag
+    objects_tag = configs["objects_tag"]
+    # Build articulated object instances
+    # currently supported only for ReplicaCAD - use name tags to copy default settings from decon config
+    ao_res_list = []
+    if len(configs["ao_instance_mappings"]) != 0:
+        import numpy as np
+
+        # mapping is provided to map scene name to prebuilt/predefined stage names
+        ao_instance_dict = configs["ao_instance_mappings"]
+        # mapping of scene object names to AO model names, to use the locations in the scene to place the AOs
+        ao_objects_dict = configs["ao_include_obj_names"]
+        # list of desired AOs to include
+        art_obj_template_names = [
+            "fridge",
+            "kitchen_counter",
+            "kitchenCupboard_01",
+            "door2",
+        ]
+        art_src_object_names = {}
+        if len(ao_objects_dict) != 0:
+            # get all the objects in the scene so we can find the appropriate objects to use for AO placement, if any do this
+            objects_raw = scene_graph.graph.transforms.children_dict[objects_tag]
+            for ao_model_name, obj_name_substr in ao_objects_dict.items():
+                for obj_name in objects_raw:
+                    # get actual object name within scene graph
+                    if obj_name_substr.lower() in obj_name.lower():
+                        art_src_object_names[ao_model_name] = obj_name
+                        art_obj_template_names.append(ao_model_name)
+
+        for k, v in ao_instance_dict.items():
+            if k.lower() in scene_name_base.lower():
+                mapping_dict = v
+                break
+
+        for ao_name in art_obj_template_names:
+
+            art_obj_instance_dict = {}
+            art_obj_instance_dict["template_name"] = ao_name
+            art_obj_instance_dict["fixed_base"] = True
+            art_obj_instance_dict["auto_clamp_joint_limits"] = True
+            art_obj_instance_dict["translation_origin"] = "COM"
+            art_obj_instance_dict["motion_type"] = "DYNAMIC"
+
+            if ao_name in mapping_dict:
+                # fridge, counter and cupboard provided by json config currently
+                # print("Mapping for : {} is {} ".format(scene_name_base, mapping_dict))
+                # specific mappings for fridge and kitchen counter based on scene
+                art_obj_instance_dict["translation"] = mapping_dict[ao_name][
+                    "translation"
+                ]
+                art_obj_instance_dict["rotation"] = mapping_dict[ao_name]["rotation"]
+
+                if "uniform_scale" in mapping_dict[ao_name]:
+                    art_obj_instance_dict["uniform_scale"] = mapping_dict[ao_name][
+                        "uniform_scale"
+                    ]
+
+            elif "door2" in ao_name:
+                art_obj_instance_dict["translation"] = [-0.35, 2.40, -2.65]
+                art_obj_instance_dict["rotation"] = [1, 0, 0, 0]
+            elif ao_name in ao_objects_dict:
+                # get transform from scene graph
+                obj_name = art_src_object_names[ao_name]
+                obj_transform = scene_graph.graph.get(obj_name)[0]
+                # temporary instance, just to provide transformations in dictionary form
+                tmp_instance_dict = gut.build_instance_config_json(
+                    "not_to_be_used",
+                    obj_transform,
+                    True,
+                    calc_scale=False,
+                )
+                new_trans = np.array(tmp_instance_dict["translation"])
+                new_rot = np.array(tmp_instance_dict["rotation"])
+                if "chestOfDrawers" in ao_name:
+                    new_trans[1] = 0.0
+                    art_obj_instance_dict["uniform_scale"] = 0.4
+                    new_rot = gut.rotate_quat_by_quat(
+                        new_rot, np.array([0.707, 0.707, 0, 0])
+                    )
+                    # global around y
+                    new_rot = gut.rotate_quat_by_quat(
+                        np.array([0.707, 0.0, 0.707, 0]), new_rot
+                    )
+                elif "cabinet" in ao_name:
+                    new_trans[1] = 0.05
+                    new_trans[2] -= 0.18
+                    new_rot = gut.rotate_quat_by_quat(
+                        new_rot, np.array([0.0, 0.0, 1.0, 0.0])
+                    )
+                new_rot /= np.linalg.norm(new_rot)
+                art_obj_instance_dict["translation"] = list(new_trans)
+                art_obj_instance_dict["rotation"] = list(new_rot)
+                print(
+                    "\tArticulated Object {} made from existing object transformation.".format(
+                        ao_name
+                    )
+                )
+            else:
+                print("Articulated Object {} not yet supported".format(ao_name))
+                break
+
+            ao_res_list.append(art_obj_instance_dict)
+
+    return ao_res_list
 
 
 def extract_lighting_from_scene(
     scene_filename_glb,
     scene_graph,
     scene_name_base: str,
-    lights_dest_dir: str,
-    lights_tag: str,
+    configs: Dict[str, Any],
     debug: Optional[bool] = False,
 ):
-
+    # scene graph node holding lights info
+    lights_tag = configs["lighting_tag"]
+    # Still TODO
     lighting_res_dict = gut.extract_lighting_from_gltf(scene_filename_glb, lights_tag)
     if len(lighting_res_dict) == 0:
         return ""
@@ -476,7 +692,9 @@ def extract_lighting_from_scene(
 
     # base stage name - fully qualified directories + stub
     lighting_name_base = scene_name_base + "_lighting"
-    lighting_dest_filename_base = os.path.join(lights_dest_dir, lighting_name_base)
+    lighting_dest_filename_base = os.path.join(
+        configs["light_config_dest_dir"], lighting_name_base
+    )
     # set up lighting configuration file
     lighting_config_filename = (
         lighting_dest_filename_base + ut.CONFIG_EXTENSIONS["lighting"] + ".json"
@@ -492,15 +710,23 @@ def extract_lighting_from_scene(
     return ""  # lighting_name_base
 
 
-def build_scene_dataset_config(scene_dataset_filename, default_attrs):
+def build_scene_dataset_config(configs):
     scene_dataset_config = {
-        "stages": {"paths": {".json": ["stages/*"]}},
-        "objects": {"paths": {".json": ["objects/*"]}},
-        "light_setups": {"paths": {".json": ["lighting/*"]}},
-        "scene_instances": {"paths": {".json": ["scenes/*"]}},
+        "stages": {
+            "paths": {".json": [os.path.join(configs["stage_config_dest_dir"], "*")]}
+        },
+        "objects": {
+            "paths": {".json": [os.path.join(configs["obj_config_dest_dir"], "*")]}
+        },
+        "light_setups": {
+            "paths": {".json": [os.path.join(configs["light_config_dest_dir"], "*")]}
+        },
+        "scene_instances": {
+            "paths": {".json": [os.path.join(configs["scene_instance_dest_dir"], "*")]}
+        },
     }
     # add default attributes specs if any exist
-    for k, v in default_attrs.items():
+    for k, v in configs[""].items():
         if len(v) > 0:
             scene_dataset_config[k]["default_attributes"] = v
     # Save scene dataset config
@@ -508,8 +734,8 @@ def build_scene_dataset_config(scene_dataset_filename, default_attrs):
         (
             "",
             os.path.join(
-                DEST_DIR,
-                scene_dataset_filename + ut.CONFIG_EXTENSIONS["dataset"] + ".json",
+                configs["dataset_dest_dir"],
+                configs["dataset_name"] + ut.CONFIG_EXTENSIONS["dataset"] + ".json",
             ),
             scene_dataset_config,
         )
@@ -517,52 +743,53 @@ def build_scene_dataset_config(scene_dataset_filename, default_attrs):
 
 
 # build dict rep of scene graph and save to json
-def build_scene_graph_diagnostic(scene_graph, scene_name_base):
+def build_scene_graph_diagnostic(configs, scene_graph, scene_name_base):
     # get node graph dictionary
     sg_node_dict = gut.build_glb_scene_graph_dict(scene_graph, "world")
     # print("{}".format(sg_node_dict))
     # build file name
     abs_sg_diagnostic_filename = os.path.join(
-        SG_OUTPUT_DIR, scene_name_base + "_sg_layout.json"
+        configs["scenegraph_diagnostics_dir"], scene_name_base + "_sg_layout.json"
     )
     # save node graph dictionary as json
     ut.mod_json_val_and_save(("", abs_sg_diagnostic_filename, sg_node_dict))
 
 
-def test_objects():
-    bad_object_filename = os.path.join(DATASET_SRC_DIR, "test/Alarm_Clock_1_bad.glb")
-    good_object_filename = os.path.join(DATASET_SRC_DIR, "test/Alarm_Clock_1_good.glb")
-    bad_object_out_filename = os.path.join(
-        DATASET_SRC_DIR, "test/Alarm_Clock_1_bad.gltf"
-    )
-    good_object_out_filename = os.path.join(
-        DATASET_SRC_DIR, "test/Alarm_Clock_1_good.gltf"
-    )
-    gut.convert_glb_to_gltf(bad_object_filename, bad_object_out_filename, True)
-    gut.convert_glb_to_gltf(good_object_filename, good_object_out_filename, True)
-
-
 def main():
+    # Load configuration describing the scene meshes we wish to deconstruct into stages and objects
+    decon_configs = load_decon_global_config_values(MESH_DECON_CONFIG_JSON_FILENAME)
 
     # get listing of all scene glbs
-    file_list = ut.get_files_matching_regex(SCENES_SRC_DIR)
+    file_list = ut.get_files_matching_regex(decon_configs["scenes_src_dir"])
+    # if we wish to match mesh object instance names with existing object files, get a
+    # listing of all the existing object files from the specified object source dir
+    existing_obj_dict = {}
+    if decon_configs["match_object_names"]:
+        existing_obj_list = ut.get_files_matching_regex(
+            decon_configs["objects_src_dir"]
+        )
+        for tup in existing_obj_list:
+            obj_name = tup[2].split(".")[0]
+            existing_obj_dict[obj_name] = tup
 
-    build_scene_dataset_config(SCENE_DATASET_NAME, DEFAULT_ATTRIBUTES_TEMPLATE)
+    # Don't build this for replicaCAD
+    # build_scene_dataset_config(decon_configs)
 
     ###for testing - 17_physics has stove w/burner and knobs
-    file_list = [
-        ("", "", "FloorPlan320_physics.glb"),
-        ("", "", "FloorPlan_Train8_3.glb"),
-        ("", "", "FloorPlan430_physics.glb"),
-        ("", "", "FloorPlan17_physics.glb"),
-        ("", "", "FloorPlan_Val2_4.glb"),
-    ]
+    # file_list = [
+    #     ("", "", "FloorPlan320_physics.glb"),
+    #     ("", "", "FloorPlan_Train8_3.glb"),
+    #     ("", "", "FloorPlan430_physics.glb"),
+    #     ("", "", "FloorPlan17_physics.glb"),
+    #     ("", "", "FloorPlan_Val2_4.glb"),
+    # ]
 
     # count the instances of objects by name
     object_instance_count_dict = defaultdict(int)
     # file name to save object counts
     object_instance_count_filename = os.path.join(
-        DEST_DIR, SCENE_DATASET_NAME + "_object_counts.json"
+        decon_configs["dataset_config_dest_dir"],
+        decon_configs["dataset_name"] + "_object_counts.json",
     )
 
     # Go through every scene glb file
@@ -572,10 +799,10 @@ def main():
         # scene_name = "FloorPlan320_physics.glb"
         scene_name_base = scene_name.split(".glb")[0]
 
-        src_scene_filename = os.path.join(SCENES_SRC_DIR, scene_name)
+        src_scene_filename = os.path.join(decon_configs["scenes_src_dir"], scene_name)
         # build scene instance config file
         abs_scene_instance_filename = os.path.join(
-            SCENE_INSTANCE_OUTPUT_DIR,
+            decon_configs["scene_instance_dest_dir"],
             scene_name_base + ut.CONFIG_EXTENSIONS["scene"] + ".json",
         )
         print(
@@ -590,8 +817,11 @@ def main():
         if scene_graph is None:
             continue
 
-        if SAVE_SRC_SCENES_AS_GLTF:
-            gltf_scene_name = os.path.join(GLTF_EXPORT_DIR, scene_name_base + ".gltf")
+        if decon_configs["export_glbs_as_gltf"]:
+            # Convert glb scenes to gltfs and save
+            gltf_scene_name = os.path.join(
+                decon_configs["gltf_export_dir"], scene_name_base + ".gltf"
+            )
             convert_success = gut.convert_glb_to_gltf(
                 src_scene_filename, gltf_scene_name, True
             )
@@ -602,52 +832,60 @@ def main():
             )
 
         # If requested build diagnostic info about scene graph and save
-        if BUILD_SG_DIAGNOSTIC:
-            build_scene_graph_diagnostic(scene_graph, scene_name_base)
+        if decon_configs["save_scenegraph_hierarchy"]:
+            build_scene_graph_diagnostic(decon_configs, scene_graph, scene_name_base)
 
-        lighting_setup_config_name = ""
-        if BUILD_LIGHTING_CONFIGS:
+        # Empty string corresponds to default lighting within habitat sim
+        lighting_setup_config_name = decon_configs["default_lighting_tag"]
+        if decon_configs["build_lighting_configs"]:
             # extract all lighting configs in the scene
             lighting_setup_config_name = extract_lighting_from_scene(
                 src_scene_filename,
                 scene_graph,
                 scene_name_base,
-                LIGHTING_CONFIG_OUTPUT_DIR,
-                LIGHTING_TAG,
+                decon_configs,
             )
 
         # extract the stage from the scene glb
         stage_instance_config = extract_stage_from_scene(
             scene_graph,
             scene_name_base,
-            STAGES_OUTPUT_DIR,
-            STAGE_TAG,
-            STAGE_INCLUDE_OBJ_DICT,
-            BUILD_STAGE_CONFIGS,
+            decon_configs,
         )
 
         # extract all the object instances within the scene
         obj_instance_config_list = extract_objects_from_scene(
             scene_graph,
-            scene_name_base,
-            OBJECTS_OUTPUT_DIR,
-            OBJECTS_TAG,
-            STAGE_INCLUDE_OBJ_DICT,
-            BUILD_OBJECT_CONFIGS,
+            decon_configs,
+            existing_obj_dict,
         )
+
         # get counts of object instances
         for elem in obj_instance_config_list:
             object_instance_count_dict[elem["template_name"]] += 1
 
-        # compose the scene instance configuration JSON
-        scene_instance_dict = {
-            "stage_instance": stage_instance_config,
-            "object_instances": obj_instance_config_list,
-            "default_lighting": lighting_setup_config_name,
-        }
+        if decon_configs["build_scene_configs"]:
+            # compose the scene instance configuration JSON
+            scene_instance_dict = {
+                "stage_instance": stage_instance_config,
+                "default_lighting": lighting_setup_config_name,
+            }
 
-        # save scene instance configuration
-        ut.mod_json_val_and_save(("", abs_scene_instance_filename, scene_instance_dict))
+            if decon_configs["save_object_instances"]:
+                scene_instance_dict["object_instances"] = obj_instance_config_list
+
+            if decon_configs["save_articulated_object_instances"]:
+                art_obj_instance_config_list = extract_articulated_objects_from_scene(
+                    scene_graph, scene_name_base, decon_configs
+                )
+                scene_instance_dict[
+                    "articulated_object_instances"
+                ] = art_obj_instance_config_list
+
+            # save scene instance configuration
+            ut.mod_json_val_and_save(
+                ("", abs_scene_instance_filename, scene_instance_dict)
+            )
 
         # resave updated object counts for every scene, in case some scene fails parsing
         # order results in result json
@@ -661,9 +899,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # Load configuration describing the scene meshes we wish to deconstruct into stages and objects
-    load_decon_global_config_values(MESH_DECON_CONFIG_JSON)
-    # whether a successful load occurred or not, we need to make the destination directories
-    build_required_directories()
-
     main()
