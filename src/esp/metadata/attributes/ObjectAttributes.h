@@ -210,6 +210,26 @@ class AbstractObjectAttributes : public AbstractAttributes {
 
  protected:
   /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override;
+
+  /**
+   * @brief Write this specific object/stage's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  virtual void writeObjectAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) {}
+
+  /**
    * @brief Retrieve a comma-separated string holding the header values for the
    * info returned for this managed object, type-specific.
    */
@@ -218,9 +238,7 @@ class AbstractObjectAttributes : public AbstractAttributes {
   /**
    * @brief get AbstractObject specific info header
    */
-  virtual std::string getAbstractObjectInfoHeaderInternal() const {
-    return "";
-  };
+  virtual std::string getAbstractObjectInfoHeaderInternal() const { return ""; }
 
   /**
    * @brief Retrieve a comma-separated informational string about the contents
@@ -306,6 +324,16 @@ class ObjectAttributes : public AbstractObjectAttributes {
   uint32_t getSemanticId() const { return getInt("semantic_id"); }
 
  protected:
+  /**
+   * @brief Write this object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeObjectAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override;
+
   /**
    * @brief get AbstractObject specific info header
    */
@@ -393,6 +421,16 @@ class StageAttributes : public AbstractObjectAttributes {
   bool getFrustumCulling() const { return getBool("frustum_culling"); }
 
  protected:
+  /**
+   * @brief Write this stage's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeObjectAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override;
+
   /**
    * @brief get AbstractObject specific info header
    */

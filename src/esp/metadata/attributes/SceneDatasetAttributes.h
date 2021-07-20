@@ -334,6 +334,15 @@ class SceneDatasetAttributes : public AbstractAttributes {
 
  protected:
   /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override;
+  /**
    * @brief Retrieve a comma-separated string holding the header values for the
    * info returned for this managed object, type-specific.  Individual
    * components handle this.

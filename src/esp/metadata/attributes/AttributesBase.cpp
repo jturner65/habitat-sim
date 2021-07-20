@@ -55,6 +55,15 @@ std::string getTranslationOriginName(int translationOrigin) {
   return "default";
 }
 
+void AbstractAttributes::writeValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO: Populated with appropriate values for AttributesBase construct
+
+  // Write specific values for implementation attributes
+  this->writeAttributesValuesToJSONDocInternal(doc, allocator);
+}  // AbstractAttributes::writeValuesToJSONDocInternal
+
 }  // namespace attributes
 }  // namespace metadata
 }  // namespace esp

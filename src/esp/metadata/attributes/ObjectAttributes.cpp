@@ -73,6 +73,15 @@ std::string AbstractObjectAttributes::getObjectInfoInternal() const {
       .append(getAbstractObjectInfoInternal());
 }  // AbstractObjectAttributes::getObjectInfoInternal
 
+void AbstractObjectAttributes::writeAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO write AbstractObjectAttributes to doc
+
+  // Instance-specific writing
+  this->writeObjectAttributesValuesToJSONDocInternal(doc, allocator);
+}  // AbstractObjectAttributes::writeAttributesValuesToJSONDocInternal
+
 ObjectAttributes::ObjectAttributes(const std::string& handle)
     : AbstractObjectAttributes("ObjectAttributes", handle) {
   // fill necessary attribute defaults
@@ -109,6 +118,12 @@ std::string ObjectAttributes::getAbstractObjectInfoInternal() const {
       .append(cfg.value("semantic_id"));
 }
 
+void ObjectAttributes::writeObjectAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO save object values here
+}  // ObjectAttributes::writeObjectAttributesValuesToJSONDocInternal
+
 StageAttributes::StageAttributes(const std::string& handle)
     : AbstractObjectAttributes("StageAttributes", handle) {
   setGravity({0, -9.8, 0});
@@ -123,6 +138,12 @@ StageAttributes::StageAttributes(const std::string& handle)
   // 4 corresponds to esp::assets::AssetType::INSTANCE_MESH
   setSemanticAssetType(4);
 }  // StageAttributes ctor
+
+void StageAttributes::writeObjectAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO save stage values here
+}  // StageAttributes::writeObjectAttributesValuesToJSONDocInternal
 
 }  // namespace attributes
 }  // namespace metadata

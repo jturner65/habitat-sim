@@ -36,6 +36,11 @@ LightInstanceAttributes::LightInstanceAttributes(const std::string& handle)
   setOuterConeAngle(90.0_degf);
 }  // ctor
 
+void LightInstanceAttributes::writeAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+}  // LightInstanceAttributes::writeAttributesValuesToJSONDocInternal
+
 LightLayoutAttributes::LightLayoutAttributes(const std::string& handle)
     : AbstractAttributes("LightLayoutAttributes", handle) {
   // set default scaling for positive and negative intensities to 1.0
@@ -59,6 +64,11 @@ std::string LightLayoutAttributes::getObjectInfoInternal() const {
   }
   return res;
 }
+
+void LightLayoutAttributes::writeAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+}  // LightLayoutAttributes::LightLayoutAttributes
 
 }  // namespace attributes
 }  // namespace metadata

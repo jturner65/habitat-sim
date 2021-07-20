@@ -138,6 +138,31 @@ class AbstractPrimitiveAttributes : public AbstractAttributes {
 
  protected:
   /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {
+    // TODO write generic Prim Asset attributes
+
+    // write concretion class values
+    this->writePrimAttributesValuesToJSONDocInternal(doc, allocator);
+  }
+
+  /**
+   * @brief Write this primitive object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  virtual void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) {}
+
+  /**
    * @brief Retrieve a comma-separated string holding the header values for the
    * info returned for this managed object, type-specific.
    */
@@ -276,6 +301,16 @@ class CapsulePrimitiveAttributes : public AbstractPrimitiveAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this Capsule primitive object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {}
+
   std::string buildHandleDetail() override {
     std::ostringstream oHndlStrm;
     oHndlStrm << "_hemiRings_" << getHemisphereRings() << "_cylRings_"
@@ -322,6 +357,16 @@ class ConePrimitiveAttributes : public AbstractPrimitiveAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this Cone primitive object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {}
+
   std::string buildHandleDetail() override {
     std::ostringstream oHndlStrm;
     oHndlStrm << "_segments_" << getNumSegments() << "_halfLen_"
@@ -363,6 +408,16 @@ class CubePrimitiveAttributes : public AbstractPrimitiveAttributes {
   bool isValidTemplate() override { return true; }
 
  protected:
+  /**
+   * @brief Write this Cube primitive object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {}
+
   std::string buildHandleDetail() override { return ""; }
 
   bool parseStringIntoConfigDetail(
@@ -401,6 +456,16 @@ class CylinderPrimitiveAttributes : public AbstractPrimitiveAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this Cylinder primitive object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {}
+
   std::string buildHandleDetail() override {
     std::ostringstream oHndlStrm;
     oHndlStrm << "_rings_" << getNumRings() << "_segments_" << getNumSegments()
@@ -454,6 +519,16 @@ class IcospherePrimitiveAttributes : public AbstractPrimitiveAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this Icosphere primitive object's specific values to the
+   * passed document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {}
+
   std::string buildHandleDetail() override {
     std::ostringstream oHndlStrm;
     // wireframe subdivision currently does not change
@@ -493,6 +568,16 @@ class UVSpherePrimitiveAttributes : public AbstractPrimitiveAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this UVSphere primitive object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writePrimAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override {}
+
   std::string buildHandleDetail() override {
     std::ostringstream oHndlStrm;
     oHndlStrm << "_rings_" << getNumRings() << "_segments_" << getNumSegments();

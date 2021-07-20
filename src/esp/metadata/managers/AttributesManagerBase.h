@@ -403,7 +403,7 @@ bool AttributesManager<T, Access>::parseUserDefinedJsonVals(
         } else if (obj.IsDouble()) {
           attribs->setUserConfigValue(key, obj.GetDouble());
         } else if (obj.IsNumber()) {
-          attribs->setUserConfigValue(key, obj.Get<int>());
+          attribs->setUserConfigValue(key, obj.GetInt());
         } else if (obj.IsString()) {
           attribs->setUserConfigValue(key, obj.GetString());
         } else if (obj.IsBool()) {

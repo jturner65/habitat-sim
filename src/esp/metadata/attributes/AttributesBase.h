@@ -224,6 +224,26 @@ class AbstractAttributes : public esp::core::AbstractFileBasedManagedObject,
 
  protected:
   /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeValuesToJSONDocInternal(io::JsonGenericValue& doc,
+                                    io::JsonAllocator& allocator) override;
+
+  /**
+   * @brief Write this AttributesBase object's specific values to the passed
+   * document, using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+
+  virtual void writeAttributesValuesToJSONDocInternal(
+      CORRADE_UNUSED io::JsonGenericValue& doc,
+      CORRADE_UNUSED io::JsonAllocator& allocator) {}
+
+  /**
    * @brief Retrieve a comma-separated string holding the header values for
    * the info returned for this managed object, type-specific.
    */

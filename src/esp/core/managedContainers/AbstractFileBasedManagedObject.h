@@ -7,6 +7,8 @@
 
 #include <Corrade/Utility/Directory.h>
 #include "AbstractManagedObject.h"
+#include "esp/io/io.h"
+#include "esp/io/json.h"
 
 namespace esp {
 namespace core {
@@ -34,6 +36,30 @@ class AbstractFileBasedManagedObject : public AbstractManagedObject {
                    .first)
         .first;
   }
+
+  /**
+   * @brief Write the values held in this AbstractFileBasedManagedObject into a
+   * JSON document.
+   * @param managedObject The object to use as the source of the
+   * JSON Document
+   * @return The resultant JSON document
+   */
+  virtual rapidjson::Document writeValuesToJSONDocument() {
+    rapidjson::Document doc(rapidjson::kObjectType);
+    rapidjson::Document::AllocatorType& allocator = doc.GetAllocator();
+    this->writeValuesToJSONDocInternal(doc, allocator);
+    return doc;
+  }
+
+ protected:
+  /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  virtual void writeValuesToJSONDocInternal(io::JsonGenericValue& doc,
+                                            io::JsonAllocator& allocator) = 0;
 
  public:
   ESP_SMART_POINTERS(AbstractFileBasedManagedObject)

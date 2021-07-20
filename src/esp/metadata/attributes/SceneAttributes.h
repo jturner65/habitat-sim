@@ -142,6 +142,26 @@ class SceneObjectInstanceAttributes : public AbstractAttributes {
 
  protected:
   /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override;
+
+  /**
+   * @brief Write this Scene Instance's specific values to the passed document,
+   * using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  virtual void writeSceneInstanceValuesToJSONDocInternal(
+      CORRADE_UNUSED io::JsonGenericValue& doc,
+      CORRADE_UNUSED io::JsonAllocator& allocator) {}
+
+  /**
    * @brief Retrieve a comma-separated informational string about the contents
    * of this managed object.
    */
@@ -236,6 +256,16 @@ class SceneAOInstanceAttributes : public SceneObjectInstanceAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this Scene Instance's specific values to the passed document,
+   * using the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeSceneInstanceValuesToJSONDocInternal(
+      CORRADE_UNUSED io::JsonGenericValue& doc,
+      CORRADE_UNUSED io::JsonAllocator& allocator) override;
+
   /**
    * @brief Retrieve a comma-separated informational string about the contents
    * of this SceneAOInstanceAttributes object.
@@ -365,6 +395,15 @@ class SceneAttributes : public AbstractAttributes {
   }
 
  protected:
+  /**
+   * @brief Write this object's specific values to the passed document, using
+   * the passed allocator.
+   * @param doc The JSON doc to write to
+   * @param allocator The JSON Allocator to use
+   */
+  void writeAttributesValuesToJSONDocInternal(
+      io::JsonGenericValue& doc,
+      io::JsonAllocator& allocator) override;
   /**
    * @brief Retrieve a comma-separated string holding the header values for the
    * info returned for this managed object, type-specific.

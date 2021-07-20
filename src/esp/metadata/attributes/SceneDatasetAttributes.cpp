@@ -296,6 +296,12 @@ std::string SceneDatasetAttributes::getDatasetSummary() const {
 
 }  // SceneDatasetAttributes::getDatasetSummary
 
+void SceneDatasetAttributes::writeAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO write all the constituent data for the scene dataset config
+}  // SceneDatasetAttributes::writeAttributesValuesToJSONDocInternal
+
 }  // namespace attributes
 }  // namespace metadata
 }  // namespace esp

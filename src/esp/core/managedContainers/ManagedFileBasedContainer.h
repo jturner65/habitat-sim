@@ -139,7 +139,7 @@ class ManagedFileBasedContainer : public ManagedContainer<T, Access> {
    * false.
    * @param overwrite Whether or not an existing json file with the same name
    * should be overwritten.
-   * @return whether successful
+   * @return Whether save was successful
    */
 
   bool saveManagedObjectToFile(const std::string& objectHandle, bool overwrite);
@@ -153,7 +153,7 @@ class ManagedFileBasedContainer : public ManagedContainer<T, Access> {
    * false.
    * @param fullFilename The name of the file to save to.  Will overwrite any
    * file that has the same name.
-   * @return whether successful
+   * @return Whether save was successful
    */
   bool saveManagedObjectToFile(const std::string& objectHandle,
                                const std::string& fullFilename) {
@@ -208,7 +208,7 @@ class ManagedFileBasedContainer : public ManagedContainer<T, Access> {
    * @param filename The filename of the file to save to.
    * @param fileDirectory The directory to save to. If the directory does not
    * exist, will return false.
-   * @return whether successful
+   * @return Whether save was successful
    */
   bool saveManagedObjectToFileInternal(ManagedFileIOPtr managedObject,
                                        const std::string& filename,
@@ -349,10 +349,13 @@ bool ManagedFileBasedContainer<T, Access>::saveManagedObjectToFileInternal(
   }
   // construct fully qualified filename
   std::string fullFilename = FileUtil::join(fileDirectory, filename);
+  // construct the jsonDocument from the managedFileBasedObject
+  rapidjson::Document jsonDocument = managedObject->writeValuesToJSONDocument();
 
-  // TODO Build and save JSON file from managedObject
+  // want to use pretty writer since we wish for the file to be human readable.
+  bool success = esp::io::writeJsonToFile(jsonDocument, fullFilename, true, 7);
 
-  return true;
+  return success;
 
 }  // ManagedFileBasedContainer<T, Access>::saveManagedObjectToFileInternal
 

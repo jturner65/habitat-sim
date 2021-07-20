@@ -64,13 +64,21 @@ std::string SceneObjectInstanceAttributes::getObjectInfoInternal() const {
       .append(getSceneObjInstanceInfoInternal());
 }  // SceneObjectInstanceAttributes::getObjectInfoInternal()
 
+void SceneObjectInstanceAttributes::writeAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO write scene instance attributes
+
+  this->writeSceneInstanceValuesToJSONDocInternal(doc, allocator);
+}  // SceneObjectInstanceAttributes::writeAttributesValuesToJSONDocInternal
+
 SceneAOInstanceAttributes::SceneAOInstanceAttributes(const std::string& handle)
     : SceneObjectInstanceAttributes(handle, "SceneAOInstanceAttributes") {
   // set default fixed base and auto clamp values (only used for articulated
   // object)
   setFixedBase(false);
   setAutoClampJointLimits(false);
-}
+}  // ctor
 
 std::string SceneAOInstanceAttributes::getSceneObjInstanceInfoHeaderInternal()
     const {
@@ -105,6 +113,13 @@ std::string SceneAOInstanceAttributes::getSceneObjInstanceInfoInternal() const {
   return cfg.value("fixed_base").append(1, ',') + initJointPose.append(1, ',') +
          initJointVels.append(1, ',');
 }  // SceneAOInstanceAttributes::getSceneObjInstanceInfoInternal()
+
+void SceneAOInstanceAttributes::writeSceneInstanceValuesToJSONDocInternal(
+    CORRADE_UNUSED io::JsonGenericValue& doc,
+    CORRADE_UNUSED io::JsonAllocator& allocator) {
+  // TODO write articulated-object specific data
+
+}  // SceneAOInstanceAttributes::writeSceneInstanceValuesToJSONDocInternal
 
 SceneAttributes::SceneAttributes(const std::string& handle)
     : AbstractAttributes("SceneAttributes", handle) {
@@ -165,6 +180,13 @@ std::string SceneAttributes::getObjectInfoInternal() const {
 
   return res;
 }  // SceneAttributes::getObjectInfoInternal
+
+void SceneAttributes::writeAttributesValuesToJSONDocInternal(
+    io::JsonGenericValue& doc,
+    io::JsonAllocator& allocator) {
+  // TODO write stage, objects, AOs, etc.
+
+}  // SceneAttributes::writeAttributesValuesToJSONDocInternal
 
 }  // namespace attributes
 }  // namespace metadata
