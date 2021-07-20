@@ -11,9 +11,11 @@
  * esp::core::AbstractManagedObject objects
  */
 
+#include "AbstractFileBasedManagedObject.h"
 #include "ManagedContainer.h"
 
 #include <Corrade/Utility/Directory.h>
+#include <Corrade/Utility/FormatStl.h>
 #include <Corrade/Utility/String.h>
 
 #include "esp/io/io.h"
@@ -41,8 +43,9 @@ class ManagedFileBasedContainer : public ManagedContainer<T, Access> {
       "AbstractFileBasedManagedObject");
   typedef std::shared_ptr<T> ManagedFileIOPtr;
 
-  explicit ManagedFileBasedContainer(const std::string& metadataType)
-      : ManagedContainer<T, Access>(metadataType) {}
+  explicit ManagedFileBasedContainer(const std::string& metadataType,
+                                     const std::string& JSONTypeExt)
+      : ManagedContainer<T, Access>(metadataType), JSONTypeExt_(JSONTypeExt) {}
 
   /**
    * @brief Utility function to check if passed string represents an existing,

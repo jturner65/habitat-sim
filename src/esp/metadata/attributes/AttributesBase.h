@@ -7,7 +7,7 @@
 
 #include <Corrade/Utility/Directory.h>
 #include "esp/core/Configuration.h"
-#include "esp/core/managedContainers/AbstractManagedObject.h"
+#include "esp/core/managedContainers/AbstractFileBasedManagedObject.h"
 
 namespace esp {
 namespace metadata {
@@ -145,21 +145,6 @@ class AbstractAttributes : public esp::core::AbstractFileBasedManagedObject,
     setString("handle", handle);
   }
   std::string getHandle() const override { return getString("handle"); }
-
-  /**
-   * @brief This will return a simplified version of the attributes handle. Note
-   * : there's no guarantee this handle will be sufficiently unique to identify
-   * this attributes, so this should only be used for logging, and not for
-   * attempts to search for attributes.
-   */
-  virtual std::string getSimplifiedHandle() const {
-    // first parse for file name, and then get rid of extension(s).
-    return Corrade::Utility::Directory::splitExtension(
-               Corrade::Utility::Directory::splitExtension(
-                   Corrade::Utility::Directory::filename(getHandle()))
-                   .first)
-        .first;
-  }
 
   /**
    * @brief directory where files used to construct attributes can be found.
