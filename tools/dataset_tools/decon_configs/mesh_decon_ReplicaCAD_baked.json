@@ -1,8 +1,8 @@
 {
   "dataset_name": "ReplicaCAD_baked",
   "dataset_src_rel_to_home": true,
-  "dataset_src_subdir": "Facebook/habitat-sim/data/scene_datasets/replicaCAD_baked/",
-  "scenes_src_subdir": "stages/",
+  "dataset_src_subdir": "Facebook/habitat-sim/data/scene_datasets/replicaCAD_working/process_baked/",
+  "scenes_src_subdir": "repivot_stages/",
   "objects_src_subdir": "objects/",
   "dataset_dest_rel_to_home": true,
   "dataset_dest_subdir": "Facebook/habitat-sim/data/scene_datasets/replicaCAD_baked/",
@@ -17,6 +17,7 @@
   "stage_tag": "world",
   "objects_tag": "world",
   "lighting_tag": "world",
+  "build_dataset_config": false,
   "build_scene_configs": true,
   "build_stage_configs": true,
   "build_object_configs": false,
@@ -29,10 +30,6 @@
   "stage_include_obj_substr": [],
   "obj_override_names": [],
   "obj_exclude_names": [],
-  "ao_include_obj_names": {
-    "cabinet": "frl_apartment_cabinet",
-    "chestOfDrawers_01": "frl_apartment_wall_cabinet_03"
-  },
   "obj_created_static": [],
   "obj_created_dynamic": [],
   "save_scenegraph_hierarchy": false,
@@ -40,15 +37,70 @@
   "default_lighting_tag": "no_lights",
   "apply_object_transform": true,
   "save_articulated_object_instances": true,
+  "ao_scene_mapping_obj_names": {
+    "fridge": "",
+    "kitchen_counter": "",
+    "kitchenCupboard_01": "",
+    "door2": "",
+    "cabinet": "frl_apartment_cabinet",
+    "chestOfDrawers_01": "frl_apartment_wall_cabinet_03"
+  },
   "ao_instance_mappings": {
     "sc0_staging": {
+      "cabinet": {
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.94552,
+          0,
+          0.32557,
+          0
+        ]
+      },
+      "chestOfDrawers_01": {
+        "uniform_scale": 0.4,
+        "translation_override_y": 0.0,
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.707,
+          0.707,
+          0,
+          0
+        ],
+        "global_relative_rotation": [
+          0.707,
+          0.0,
+          0.707,
+          0
+        ]
+      },
+      "door2": {
+        "absolute_translation": [
+          -0.35,
+          2.40,
+          -2.65
+        ],
+        "absolute_rotation": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
       "fridge": {
-        "translation": [
+        "absolute_translation": [
           0.6818168997764587,
-          0.9755649566650391,
+          1.01,
           4.4597649574279785
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -56,12 +108,12 @@
         ]
       },
       "kitchen_counter": {
-        "translation": [
+        "absolute_translation": [
           0.880730934143066,
           0.03,
           6.373764820098877
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -70,12 +122,12 @@
       },
       "kitchenCupboard_01": {
         "uniform_scale": 0.38,
-        "translation": [
+        "absolute_translation": [
           0.580730934143066,
           1.53,
           6.373764820098877
         ],
-        "rotation": [
+        "absolute_rotation": [
           -0.707,
           0.707,
           0,
@@ -84,13 +136,60 @@
       }
     },
     "sc1_staging": {
+      "cabinet": {
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.94552,
+          0,
+          0.32557,
+          0
+        ]
+      },
+      "chestOfDrawers_01": {
+        "uniform_scale": 0.4,
+        "translation_override_y": 0.0,
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.707,
+          0.707,
+          0,
+          0
+        ],
+        "global_relative_rotation": [
+          0.707,
+          0.0,
+          0.707,
+          0
+        ]
+      },
+      "door2": {
+        "absolute_translation": [
+          -0.35,
+          2.40,
+          -2.65
+        ],
+        "absolute_rotation": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
       "fridge": {
-        "translation": [
+        "absolute_translation": [
           -2.1782121658325195,
           0.9755649566650391,
           -1.04
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -98,12 +197,12 @@
         ]
       },
       "kitchen_counter": {
-        "translation": [
+        "absolute_translation": [
           -2,
           0.03,
           0.87
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -112,12 +211,12 @@
       },
       "kitchenCupboard_01": {
         "uniform_scale": 0.38,
-        "translation": [
+        "absolute_translation": [
           -2.3,
           1.53,
           0.87
         ],
-        "rotation": [
+        "absolute_rotation": [
           -0.707,
           0.707,
           0,
@@ -126,13 +225,60 @@
       }
     },
     "sc2_staging": {
+      "cabinet": {
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.94552,
+          0,
+          0.32557,
+          0
+        ]
+      },
+      "chestOfDrawers_01": {
+        "uniform_scale": 0.4,
+        "translation_override_y": 0.0,
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.707,
+          0.707,
+          0,
+          0
+        ],
+        "global_relative_rotation": [
+          0.707,
+          0.0,
+          0.707,
+          0
+        ]
+      },
+      "door2": {
+        "absolute_translation": [
+          -0.35,
+          2.40,
+          -2.65
+        ],
+        "absolute_rotation": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
       "fridge": {
-        "translation": [
+        "absolute_translation": [
           -2.1782121658325195,
-          0.9755649566650391,
+          1.01,
           -0.24
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -140,12 +286,12 @@
         ]
       },
       "kitchen_counter": {
-        "translation": [
+        "absolute_translation": [
           -2,
           0.03,
           1.6446
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -154,12 +300,12 @@
       },
       "kitchenCupboard_01": {
         "uniform_scale": 0.38,
-        "translation": [
+        "absolute_translation": [
           -2.3,
           1.53,
           1.6446
         ],
-        "rotation": [
+        "absolute_rotation": [
           -0.707,
           0.707,
           0,
@@ -168,13 +314,60 @@
       }
     },
     "sc3_staging": {
+      "cabinet": {
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.94552,
+          0,
+          0.32557,
+          0
+        ]
+      },
+      "chestOfDrawers_01": {
+        "uniform_scale": 0.4,
+        "translation_override_y": 0.0,
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.707,
+          0.707,
+          0,
+          0
+        ],
+        "global_relative_rotation": [
+          0.707,
+          0.0,
+          0.707,
+          0
+        ]
+      },
+      "door2": {
+        "absolute_translation": [
+          -0.35,
+          2.40,
+          -2.65
+        ],
+        "absolute_rotation": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
       "fridge": {
-        "translation": [
+        "absolute_translation": [
           -2.1782121658325195,
-          0.9755649566650391,
+          1.01,
           3.6299728393554688
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -182,12 +375,12 @@
         ]
       },
       "kitchen_counter": {
-        "translation": [
+        "absolute_translation": [
           -2,
           0.03,
           1.6346
         ],
-        "rotation": [
+        "absolute_rotation": [
           1,
           0,
           0,
@@ -196,12 +389,12 @@
       },
       "kitchenCupboard_01": {
         "uniform_scale": 0.38,
-        "translation": [
+        "absolute_translation": [
           -2.3,
           1.53,
           1.6346
         ],
-        "rotation": [
+        "absolute_rotation": [
           -0.707,
           0.707,
           0,
@@ -210,13 +403,60 @@
       }
     },
     "sc4_staging": {
+      "cabinet": {
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.94552,
+          0,
+          0.32557,
+          0
+        ]
+      },
+      "chestOfDrawers_01": {
+        "uniform_scale": 0.4,
+        "translation_override_y": 0.0,
+        "relative_translation": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "local_relative_rotation": [
+          0.707,
+          0.707,
+          0,
+          0
+        ],
+        "global_relative_rotation": [
+          0.707,
+          0.0,
+          0.707,
+          0
+        ]
+      },
+      "door2": {
+        "absolute_translation": [
+          -0.35,
+          2.40,
+          -2.65
+        ],
+        "absolute_rotation": [
+          1,
+          0,
+          0,
+          0
+        ]
+      },
       "fridge": {
-        "translation": [
+        "absolute_translation": [
           0.8183235287666321,
-          0.9755649566650391,
+          1.01,
           7.551066970825195
         ],
-        "rotation": [
+        "absolute_rotation": [
           0.7071067390396977,
           0.0,
           0.7071068233333898,
@@ -224,12 +464,12 @@
         ]
       },
       "kitchen_counter": {
-        "translation": [
+        "absolute_translation": [
           2.74135208129882812,
           0.03,
           7.432462692260742
         ],
-        "rotation": [
+        "absolute_rotation": [
           0.7071067390396977,
           0.0,
           0.7071068233333898,
@@ -238,12 +478,12 @@
       },
       "kitchenCupboard_01": {
         "uniform_scale": 0.38,
-        "translation": [
+        "absolute_translation": [
           2.74135208129882812,
           1.53,
           7.732462692260742
         ],
-        "rotation": [
+        "absolute_rotation": [
           -0.5,
           0.5,
           -0.5,
