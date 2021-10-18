@@ -14,9 +14,9 @@ import glb_mesh_tools as gut
 ###
 # JSON Configuration file for running this application.
 # MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_AI2Thor.json"
-# MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD.json"
+MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD.json"
 # MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD_baked.json"
-MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_floorplanner.json"
+# MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_floorplanner.json"
 
 
 def build_default_configs():
@@ -102,6 +102,9 @@ def build_default_configs():
     # calculating translation and rotation for saving in scene instance
     default_configs["apply_object_transform"] = False
 
+    # Whether or not to calculate and save the object instance scale found in the transformation.
+    default_configs["calc_object_uniform_scale"] = True
+
     # tag of root within scene graph
     default_configs["world_tag"] = "world"
     # tag within scene graph to find where components of the stage reside
@@ -128,7 +131,7 @@ def build_default_configs():
     default_configs["stage_include_obj_substr"] = {}
 
     # What to consider the origin for the stage - either its COM or an origin local to the stage
-    default_configs["stage_translation_origin"] = "com"
+    default_configs["stage_translation_origin"] = "COM"
 
     # Objects specified in the "stage_include_obj_substr" dict are, by default, ignored
     # when objects are extracted from the scene graph.  The "obj_override_names"
@@ -557,7 +560,7 @@ def extract_objects_from_scene(
             obj_name_base,
             obj_transform,
             reframe_transform=configs["apply_object_transform"],
-            calc_scale=True,
+            calc_scale=configs["calc_object_uniform_scale"],
         )
         obj_instance_dict["motion_type"] = obj_motion_type_dict[obj_name]
         obj_instance_dict["translation_origin"] = configs["obj_translation_origin"]
@@ -777,18 +780,62 @@ def extract_lighting_from_scene(
 
 
 def build_scene_dataset_config(configs):
+    scene_dataset_dest_dir = os.path.join(
+        configs["dataset_dest_dir"],
+        configs["dataset_name"] + ut.CONFIG_EXTENSIONS["dataset"] + ".json",
+    )
     scene_dataset_config = {
         "stages": {
-            "paths": {".json": [os.path.join(configs["stage_config_dest_dir"], "*")]}
+            "paths": {
+                ".json": [
+                    os.path.join(
+                        ut.transform_path_relative(
+                            configs["stage_config_dest_dir"],
+                            configs["dataset_dest_dir"],
+                        ),
+                        "*",
+                    )
+                ]
+            }
         },
         "objects": {
-            "paths": {".json": [os.path.join(configs["obj_config_dest_dir"], "*")]}
+            "paths": {
+                ".json": [
+                    os.path.join(
+                        ut.transform_path_relative(
+                            configs["obj_config_dest_dir"],
+                            configs["dataset_dest_dir"],
+                        ),
+                        "*",
+                    )
+                ]
+            }
         },
         "light_setups": {
-            "paths": {".json": [os.path.join(configs["light_config_dest_dir"], "*")]}
+            "paths": {
+                ".json": [
+                    os.path.join(
+                        ut.transform_path_relative(
+                            configs["light_config_dest_dir"],
+                            configs["dataset_dest_dir"],
+                        ),
+                        "*",
+                    )
+                ]
+            }
         },
         "scene_instances": {
-            "paths": {".json": [os.path.join(configs["scene_instance_dest_dir"], "*")]}
+            "paths": {
+                ".json": [
+                    os.path.join(
+                        ut.transform_path_relative(
+                            configs["scene_instance_dest_dir"],
+                            configs["dataset_dest_dir"],
+                        ),
+                        "*",
+                    )
+                ]
+            }
         },
     }
     # add default attributes specs if any exist
@@ -799,10 +846,7 @@ def build_scene_dataset_config(configs):
     ut.mod_json_val_and_save(
         (
             "",
-            os.path.join(
-                configs["dataset_dest_dir"],
-                configs["dataset_name"] + ut.CONFIG_EXTENSIONS["dataset"] + ".json",
-            ),
+            scene_dataset_dest_dir,
             scene_dataset_config,
         )
     )
