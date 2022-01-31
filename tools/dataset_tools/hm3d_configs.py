@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 
-# hm3d_configs.py : This program will synthesize all the configs required for
-# HM3D dataset
+# hm3d_configs.py : This program will synthesize all the stage
+# configs required for HM3D dataset.  Currently we do not use
+# this to synthesize configs, but rather have hand tooled Scene
+# Dataset Configs that use wildecards to support all the scenes
+# within a particular partition.
+
+# NOTE : due to the addition of glob/wildcard support to the
+# metadata subsystem in Habitat, these configs are not necessary for HM3D.
 
 import os
 import re
@@ -16,8 +22,8 @@ HM3D_BASE_DIR = "/Users/jmturner/Documents/HM3D/habitat"
 # data partition names/subdirs
 HM3D_DATA_PARTITIONS = ["minival", "test", "train", "val"]
 
-# numeric spans of each data patrition.  The directoriues
-# holding the scene data are previxed by numbers in these ranges
+# numeric spans of each data partition.  The directoriues
+# holding the scene data are prefixed by numbers in these ranges
 HM3D_DATA_PARTITIONS = {
     "minival": (800, 809),
     "test": (900, 999),

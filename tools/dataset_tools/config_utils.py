@@ -219,6 +219,49 @@ def mod_json_val_and_save(
         )
 
 
+def build_disp_string_elem(k: str, v: Any, tab: str, new_tab: str):
+    """This function is a utility to build a reasonably formatted
+    display string for dictionaries or lists
+    """
+    res = ""
+    k_disp_str = ""
+    if len(k) > 0:
+        k_disp_str = "{} : ".format(k)
+    if isinstance(v, dict):
+        res += tab + "{}({}\n{}{}),\n".format(
+            k_disp_str, tab, dict_to_disp_string(v, new_tab), tab
+        )
+    elif isinstance(v, list):
+        res += tab + "{}[\n{}{}],\n".format(
+            k_disp_str, list_to_disp_string(v, new_tab), tab
+        )
+    else:
+        res += tab + "{}{},\n".format(k_disp_str, v)
+    return res
+
+
+def list_to_disp_string(ara: list, tab: str):
+    """This function is a utility to build a reasonably formatted
+    display string for a list variable's contents
+    """
+    res = ""
+    new_tab = tab + "\t"
+    for elem in ara:
+        res += build_disp_string_elem("", elem, tab, new_tab)
+    return res
+
+
+def dict_to_disp_string(data_dict: Dict, tab: str):
+    """This function is a utility to build a reasonably formatted
+    display string for a dictionary variable's contents
+    """
+    res = ""
+    new_tab = tab + "\t"
+    for k, v in data_dict.items():
+        res += build_disp_string_elem(k, v, tab, new_tab)
+    return res
+
+
 def get_files_matching_regex(
     src_dir: str, regex_str: Optional[str] = "", debug: Optional[bool] = False
 ):
@@ -227,7 +270,8 @@ def get_files_matching_regex(
     :param src_dir: Directory to walk
     :param regex_str: String describing regex to match when building file list.
     If unspecified or empty, return all files, optional.
-    :param debug: Whether to display files not matching given regex in src_dir.
+    :param debug: Whether to display files not matching given regex in src_dir
+    and count of results found.
     :return: List of tuples containing path, dirname and file name for each result.
     """
     res_list = []
@@ -251,59 +295,15 @@ def get_files_matching_regex(
                             fname, regex_str
                         )
                     )
-    print(
-        "get_files_matching_regex : Found and matched {} of {} files in {}. If inaccurate, set debug=True".format(
-            len(res_list), found_count, src_dir
+    if debug:
+        print(
+            "get_files_matching_regex : Found and matched {} of {} files in {}".format(
+                len(res_list), found_count, src_dir
+            )
         )
-    )
     return res_list
 
 
-def build_disp_string_elem(k: str, v: Any, tab: str, new_tab: str):
-    """This function is a utility to build a reasonably formatted
-    display string for dictionaries or lists
-    """
-    res = ""
-    k_disp_str = ""
-    if len(k) > 0:
-        k_disp_str = "{} : ".format(k)
-    if isinstance(v, dict):
-        res += tab + "{}({}\n{}{}),\n".format(
-            k_disp_str, tab, dict_to_disp_string(v, new_tab), tab
-        )
-    elif isinstance(v, list):
-        res += tab + "{}[\n{}{}],\n".format(
-            k_disp_str, list_to_disp_string(v, new_tab), tab
-        )
-    else:
-        res += tab + "{}{},\n".format(k_disp_str, v)
-    return res
-
-
-def list_to_disp_string(ara: list, tab):
-    """This function is a utility to build a reasonably formatted
-    display string for a list variable's contents
-    """
-    res = ""
-    new_tab = tab + "\t"
-    for elem in ara:
-        res += build_disp_string_elem("", elem, tab, new_tab)
-    return res
-
-
-def dict_to_disp_string(dictionary, tab):
-    """This function is a utility to build a reasonably formatted
-    display string for a dictionary variable's contents
-    """
-    res = ""
-    new_tab = tab + "\t"
-    for k, v in dictionary.items():
-        res += build_disp_string_elem(k, v, tab, new_tab)
-    return res
-
-
-# takes a source directory, returns a list of tuples of paths amd dirnames
-# list of filenames if no regex_str is specified, returns all directories
 def get_directories_matching_regex(
     src_dir: str, regex_str: Optional[str] = "", debug: Optional[bool] = False
 ):
@@ -312,7 +312,8 @@ def get_directories_matching_regex(
     :param src_dir: Directory to walk
     :param regex_str: String describing regex to match when building subdirectories list.
     If unspecified or empty, return all subdirectories, optional.
-    :param debug: Whether to display subdirectories not matching given regex in src_dir.
+    :param debug: Whether to display subdirectories not matching given regex in src_dir
+    and count of results found.
     :return: List of tuples containing path and subdirectory name each result.
     """
     res_list = []
@@ -336,9 +337,10 @@ def get_directories_matching_regex(
                             dirname, regex_str
                         )
                     )
-    print(
-        "get_directories_matching_regex : Found and matched {} of {} directories in {}. If inaccurate, set debug=True".format(
-            len(res_list), found_count, src_dir
+    if debug:
+        print(
+            "get_directories_matching_regex : Found and matched {} of {} directories in {}".format(
+                len(res_list), found_count, src_dir
+            )
         )
-    )
     return res_list
