@@ -6,6 +6,7 @@
 
 import re
 import shutil
+from collections import defaultdict
 from os.path import exists as os_exists
 from os.path import isfile as os_isfile
 from os.path import join as os_join
@@ -43,17 +44,24 @@ HM3D_DEST_DIR = "/home/john/Facebook/habitat-sim/data/scene_datasets/HM3D"
 #        semantic annotations.
 
 HM3D_ANNOTATION_SRC_DIR = "/home/john/Datasets In Progress/HM3D_Semantic/Appen_Scenes"
-
+# HM3D_ANNOTATION_SRC_DIR = "/home/john/Datasets In Progress/HM3D_Semantic/Appen_29_scenes_redo_feb_14"
 #
 # Appen annotation source scene directory regex.
 # This regex describes the format of the per-scene directories in the Appen work,
 # and may change depending on whether the format we receive from Appen changes.
-
 HM3D_ANNOTATION_SUBDIR_RE = r"(?i)[0-9]{5}-[a-z0-9]{11}\.semantic$"
 
 #
 # Whether or not to build annotation scene dataset configs.
 BUILD_SD_CONFIGS = True
+
+#
+# Whether or not to save source file names in annotation file lists for individual partitions
+SAVE_FILELISTS_WITH_SOURCE = True
+
+#
+# Perform color count on semantic colors and print bad results instead of modifying and moving assets.
+COUNT_SEMANTIC_COLORS_PER_SCENE = False
 
 #
 # Prefix for config - leave empty string for none. Use this to build configs on a
@@ -108,14 +116,24 @@ def validate_src_SSD(line):
 def modify_and_copy_SSD(src_filename: str, dest_filename: str):
     with open(dest_filename, "w") as dest, open(src_filename, "r") as src:
         dest.write(f"{HM3D_SSD_STRING}\n")
-        i = 0
+        i = 1
+        printFileOffset = True
+        fileIsOffset = False
         for line in src:
-            if i > 0:
-                valid_res = validate_src_SSD(line)
-                if valid_res != "fine":
-                    print(
-                        f"!!!! Error in source SSD `{src_filename}` on line {i} : {line} has format error : `{valid_res}`"
-                    )
+            valid_res = validate_src_SSD(line)
+            if valid_res != "fine":
+                print(
+                    f"!!!! Error in source SSD `{src_filename}` on line {i} : {line} has format error : `{valid_res}`"
+                )
+            line_parts = line.split(",", 1)
+            if int(line_parts[0].strip()) != i:
+                fileIsOffset = True
+                line = f"{i},{line_parts[-1]}"
+
+            if fileIsOffset and printFileOffset:
+                print(f"erroneous line corrected {i} : {line}", end="")
+                fileIsOffset = False
+                printFileOffset = False
             dest.write(f"{line}")
             i += 1
 
@@ -144,7 +162,8 @@ def buildFileListing():
         )
         if len(src_file_list) != 2:
             print(
-                f"Problem with source dir files {dirname_full} : Unable to find 2 source files ({len(src_file_list)} instead) so skipping this source dir."
+                f"Problem with source dir files {dirname_full} : Unable to find 2 source files "
+                f"({len(src_file_list)} files instead) so skipping this source dir."
             )
             continue
         # find appropriate destination directory for given source scene
@@ -189,10 +208,11 @@ def buildFileListing():
         else:
             print(
                 f"Problem with source dir {dirname_full} : Unable to find destination dir due to {len(dest_dir_list)} "
-                f"matching destinations in current HM3D dataset so skipping this source dir."
+                f"matching destinations in current HM3D dataset so skipping this source dir.",
+                end="",
             )
             for bad_dest in dest_dir_list:
-                print(f"\t{bad_dest}")
+                print(f"\t{bad_dest}", end="")
 
             continue
 
@@ -247,7 +267,10 @@ def build_annotation_configs(part_file_list_dict: Dict, output_files: List):
     new_config_filenames = {}
     new_filepaths_for_config = {}
     # build new filenames for annotation configs
-    new_config_file_prefix = "hm3d_annotated_" + CONFIG_PREFIX
+    if len(CONFIG_PREFIX) == 0:
+        new_config_file_prefix = "hm3d_annotated_"
+    else:
+        new_config_file_prefix = f"hm3d_annotated_{CONFIG_PREFIX}"
     for config in src_json_configs:
         filename = os_join(config[0], config[-1])
         # want to overwrite old versions
@@ -270,19 +293,22 @@ def build_annotation_configs(part_file_list_dict: Dict, output_files: List):
     for config_key, src_config_filename in config_filenames.items():
         dest_config_filename = new_config_filenames[config_key]
         scene_path_list = new_filepaths_for_config[config_key]
+        if len(scene_path_list) == 0:
+            continue
         print(
             f"{config_key} # files : {len(scene_path_list)} : \n\t{src_config_filename}\n\t{dest_config_filename}"
         )
         # print("\n\tfiles:")
         # for pathname in scene_path_list:
-        #     print(f"\t\t{pathname}")
+        #     print(f"\t\t{pathname}", end="")
 
         # load each existing json config, appropriately modify it, and then save as new configs
         if BUILD_SD_CONFIGS:
             src_json_config = ut.load_json_into_dict(src_config_filename)
             for key, json_obj in src_json_config.items():
+                # Modify only those configs that hold paths
                 if "paths" in json_obj:
-                    # Modify both stages and
+                    # Modify both stages and scene instance configs
                     # this is the dictionary of lists of places to look for specified config type files
                     paths_dict = src_json_config[key]["paths"]
                     for path_type_key, lu_path_list in paths_dict.items():
@@ -291,6 +317,12 @@ def build_annotation_configs(part_file_list_dict: Dict, output_files: List):
                         modify_paths_tag(
                             paths_dict, path_type_key, lu_glob_file, scene_path_list
                         )
+                # add tag/value in stages dflt attributes denoting the
+                # annotation dataset supports texture semantics
+                if "stages" in key:
+                    dflt_attribs = src_json_config[key]["default_attributes"]
+                    dflt_attribs["has_semantic_textures"] = True
+
             ut.save_json_to_file(src_json_config, dest_config_filename)
 
         # add subdirectory-qualified file paths to new configs to output_files list so that they will
@@ -298,25 +330,39 @@ def build_annotation_configs(part_file_list_dict: Dict, output_files: List):
         rel_config_filename = dest_config_filename.split(HM3D_DEST_DIR)[-1].split(
             os_sep, 1
         )[-1]
-        print(f"Adding rel_config_filename : {rel_config_filename} to output_files.")
+        print(
+            f"Adding rel_config_filename : {rel_config_filename} to output_files.",
+            end="",
+        )
         output_files.append(rel_config_filename)
 
 
 def save_annotated_file_lists(output_files: List):
     print("save_annotated_file_lists:")
     # write text files that hold listings of appropriate relative filepaths for
-    # annotated files as well as for each partition for all scenes that have annotations
+    # annotated files as well as for each partition's configs for all scenes that
+    # have annotations
 
-    # all annotated files (annotated glb and txt only)
-    with open(os_join(HM3D_DEST_DIR, "HM3D_annotation_files.txt"), "w") as dest:
+    # single file listing holding all annotated file filenames (annotated glb and txt only)
+    # and annotated config filenames
+    if SAVE_FILELISTS_WITH_SOURCE:
+        use_src_prfx = "_and_src"
+    else:
+        use_src_prfx = ""
+    if len(CONFIG_PREFIX) == 0:
+        new_file_list_prefix = f"HM3D_annotation{use_src_prfx}"
+    else:
+        new_file_list_prefix = f"HM3D_annotation{use_src_prfx}_{CONFIG_PREFIX}"
+
+    with open(os_join(HM3D_DEST_DIR, f"{new_file_list_prefix}_files.txt"), "w") as dest:
         dest.write("\n".join(output_files))
 
-    # save listing for each partition
+    # save listing of all files (semantic, render, navmesh) for each partition:
     # each entry is a tuple with idx 0 == dest filename; idx 1 == list of paths
     partition_lists = {}
     for part in HM3D_DATA_PARTITIONS:
         partition_lists[part] = (
-            os_join(HM3D_DEST_DIR, f"HM3D_annotation_{part}_dataset.txt"),
+            os_join(HM3D_DEST_DIR, f"{new_file_list_prefix}_{part}_dataset.txt"),
             [],
         )
     # for each entry in output_files list, check which partition it belongs to
@@ -329,79 +375,130 @@ def save_annotated_file_lists(output_files: List):
             continue
         file_part_key = fileparts[0].split("-")[1].strip()
         partition_lists[file_part_key][1].append(filename)
-        # add base files
-        if ".semantic.glb" in filename:
+        # add source file filenames to filelisting if desired
+        if SAVE_FILELISTS_WITH_SOURCE and ".semantic.glb" in filename:
             filename_base = filename.split(".semantic.glb")[0]
             partition_lists[file_part_key][1].append(f"{filename_base}.basis.glb")
             partition_lists[file_part_key][1].append(f"{filename_base}.basis.navmesh")
-    # write each per-partition file listing to build per-partition annotated-only datasets
+    # write each per-partition file listing to build per-partition annotated-only dataset archives
+    # (holding semantic, render and navmesh assets)
     for _, v in partition_lists.items():
+        if len(v[1]) == 0:
+            continue
         with open(v[0], "w") as dest:
             dest.write("\n".join(v[1]))
+
+
+def count_SSD_colors(ssd_filename):
+    counts_dict = defaultdict(lambda: {"count": 0, "names": []})
+    # count the # of occurrences of colors in each scene. SHOULD ONLY BE 1 PER COLOR!
+    with open(ssd_filename, "r") as src:
+        for line in src:
+            items = line.split(",")
+            color = items[1].strip()
+            tag = line.split('"')[1].strip()
+            name = f"{tag}_{items[0]}"
+            counts_dict[color]["names"].append(name)
+            if not re.compile("^[A-F0-9]{6}$").match(color):
+                counts_dict[color]["count"] = -9999
+            else:
+                counts_dict[color]["count"] += 1
+
+    return counts_dict
 
 
 def main():
     # build dictionary of src and dest file names and paths
     file_names_and_paths = buildFileListing()
-    # Failures here will be files that did not get copied (or modified if appropriate)
-    failures = {}
     # dictionary keyed by partition valued by list of partition subdir and filename of written file
     part_file_list_dict = {}
     for key in HM3D_DATA_PARTITIONS:
         part_file_list_dict[key] = []
-    # fully qualified paths to all output files
-    output_files = []
-    # move semantic glbs and scene descriptor text files
-    for src_dir, data_dict_list in file_names_and_paths.items():
-        # print(f"Src : {src_dir} : # of data_dicts : {len(data_dict_list)} ")
-        for data_dict in data_dict_list:
-            partition_tag = data_dict["dest_part_tag"]
-            # print(
-            #     f"\tDest subdir under HM3D directory : {data_dict['dest_subdir']} | partition tag : {partition_tag}"
-            # )
-            # modify src SSD and save to dest
-            dest_ssd_filename = data_dict["dest_path_ssdfile"]
-            modify_and_copy_SSD(data_dict["src_path_ssdfile"], dest_ssd_filename)
-            # verify success
-            ssd_success = verify_file(dest_ssd_filename, src_dir, "SSD", failures)
-            if ssd_success:
-                output_files.append(data_dict["dest_subdir_ssdfile"])
-                part_file_list_dict[partition_tag].append(
-                    data_dict["dest_subdir_ssdfile"].replace(partition_tag, "*", 1)
-                )
-            # Copy glb file to appropriate location
-            dest_glb_filename = data_dict["dest_path_glbfile"]
-            shutil.copy(data_dict["src_path_glbfile"], dest_glb_filename)
-            # verify success
-            glb_success = verify_file(dest_glb_filename, src_dir, "GLB", failures)
-            if glb_success:
-                output_files.append(data_dict["dest_subdir_glbfile"])
-                part_file_list_dict[partition_tag].append(
-                    data_dict["dest_subdir_glbfile"].replace(partition_tag, "*", 1)
-                )
 
-    print(
-        f"# of src files processed : {len(file_names_and_paths)} | # of dest files written : {len(output_files)} | # of failures : {len(failures)} "
-    )
-    # for part, files in part_file_list_dict.items():
-    #     print(f"Partition : {part} | # files {len(files)}")
-    #     for filename in files:
-    #         print(f"\t{filename}")
+    if COUNT_SEMANTIC_COLORS_PER_SCENE:
+        # go through every semantic annotation file and perform a count of each color present.
+        per_scene_counts = {}
+        for _, data_dict_list in file_names_and_paths.items():
+            for data_dict in data_dict_list:
+                ssd_filename = data_dict["src_path_ssdfile"]
+                print(f"{ssd_filename}", end="")
+                tmp_dict = count_SSD_colors(ssd_filename)
+                dict_key = ssd_filename.split(HM3D_ANNOTATION_SRC_DIR)[-1].split(
+                    ".semantic/Output"
+                )[0]
+                per_scene_counts[dict_key] = tmp_dict
+        print(f"\n\n{len(per_scene_counts)} items\n\n")
+        # display results
+        total_items = 0
+        for scenename, count_dict in per_scene_counts.items():
+            for color, count_and_names in count_dict.items():
+                count = count_and_names["count"]
+                total_items += count
+                names = count_and_names["names"]
+                if count > 1:
+                    print(
+                        f"!!! In scene {scenename} : Bad Color Count : '{color}' is present {count} times : {names}",
+                        end="",
+                    )
+        print(f"Total Items :{total_items}", end="")
+    else:
+        # Failures here will be files that did not get copied (or modified if appropriate)
+        failures = {}
+        # fully qualified paths to all output files
+        output_files = []
+        # move semantic glbs and scene descriptor text files
+        for src_dir, data_dict_list in file_names_and_paths.items():
+            # print(f"Src : {src_dir} : # of data_dicts : {len(data_dict_list)} ", end="")
+            for data_dict in data_dict_list:
+                partition_tag = data_dict["dest_part_tag"]
+                # print(
+                #     f"\tDest subdir under HM3D directory : {data_dict['dest_subdir']} | partition tag : {partition_tag}", end=""
+                # )
+                # modify src SSD and save to dest
+                dest_ssd_filename = data_dict["dest_path_ssdfile"]
+                modify_and_copy_SSD(data_dict["src_path_ssdfile"], dest_ssd_filename)
+                # verify success
+                ssd_success = verify_file(dest_ssd_filename, src_dir, "SSD", failures)
+                if ssd_success:
+                    output_files.append(data_dict["dest_subdir_ssdfile"])
+                    part_file_list_dict[partition_tag].append(
+                        data_dict["dest_subdir_ssdfile"].replace(partition_tag, "*", 1)
+                    )
+                # Copy glb file to appropriate location
+                dest_glb_filename = data_dict["dest_path_glbfile"]
+                shutil.copy(data_dict["src_path_glbfile"], dest_glb_filename)
+                # verify success
+                glb_success = verify_file(dest_glb_filename, src_dir, "GLB", failures)
+                if glb_success:
+                    output_files.append(data_dict["dest_subdir_glbfile"])
+                    part_file_list_dict[partition_tag].append(
+                        data_dict["dest_subdir_glbfile"].replace(partition_tag, "*", 1)
+                    )
 
-    # Get relative paths to all 5 annotation configs, as well as build scene dataset configs,if requested
-    build_annotation_configs(part_file_list_dict, output_files)
+        print(
+            f"# of src files processed : {len(file_names_and_paths)} | # of dest files written : {len(output_files)} | # of failures : {len(failures)} ",
+            end="",
+        )
+        # for part, files in part_file_list_dict.items():
+        #     print(f"Partition : {part} | # files {len(files)}", end="")
+        #     for filename in files:
+        #         print(f"\t{filename}", end="")
 
-    # save filenames of the annotation files that have been written, to facilitate archiving
-    save_annotated_file_lists(output_files)
+        # Get relative paths to all 5 annotation configs, as well as build scene dataset configs,if requested
+        build_annotation_configs(part_file_list_dict, output_files)
 
-    # display failures if they have occurred
-    if len(failures) > 0:
-        print("!!!!! The following files failed to be written : ")
-        for src_dir, fail_dict in failures.items():
-            for file_type, file_name in fail_dict.items():
-                print(
-                    f"Src : {src_dir} :\n\tType : {file_type} | Filename : {file_name} "
-                )
+        # save filenames of the annotation files that have been written, to facilitate archiving
+        save_annotated_file_lists(output_files)
+
+        # display failures if they have occurred
+        if len(failures) > 0:
+            print("\n!!!!! The following files failed to be written : ", end="")
+            for src_dir, fail_dict in failures.items():
+                for file_type, file_name in fail_dict.items():
+                    print(
+                        f"Src : {src_dir} :\n\tType : {file_type} | Filename : {file_name} ",
+                        end="",
+                    )
 
 
 if __name__ == "__main__":
