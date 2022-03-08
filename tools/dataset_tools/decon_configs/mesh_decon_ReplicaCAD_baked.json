@@ -1,5 +1,5 @@
 {
-  "dataset_name": "ReplicaCAD_baked",
+  "dataset_name": "replicaCAD_baked",
   "dataset_src_rel_to_home": true,
   "dataset_src_subdir": "Facebook/habitat-sim/data/scene_datasets/replicaCAD_working/process_baked/",
   "scenes_src_subdir": "repivot_stages/",
@@ -9,6 +9,7 @@
   "dataset_glb_dest_subdir": ".",
   "stage_glb_dest_subdir": "stages/",
   "obj_glb_dest_subdir": "objects/",
+  "navmeshes_src_subdir": "navmeshes/",
   "dataset_config_dest_subdir": "configs/",
   "scene_instance_dest_subdir": "scenes/",
   "stage_config_dest_subdir": "stages/",
@@ -24,6 +25,7 @@
   "build_lighting_configs": false,
   "build_stage_glbs": false,
   "build_object_glbs": false,
+  "map_navmesh_tag_to_file": true,
   "save_object_instances": false,
   "objects_all_static": true,
   "match_object_names": true,
@@ -65,7 +67,7 @@
         "uniform_scale": 0.4,
         "translation_override_y": 0.0,
         "relative_translation": [
-          0.07,
+          0.0,
           0.0,
           0.0
         ],
@@ -97,8 +99,8 @@
       },
       "fridge": {
         "absolute_translation": [
-          0.6818168997764587,
-          0.9755649566650391,
+          0.535,
+          1.01,
           4.4597649574279785
         ],
         "absolute_rotation": [
@@ -111,7 +113,7 @@
       "kitchen_counter": {
         "uniform_scale": 0.98,
         "absolute_translation": [
-          0.880730934143066,
+          0.735,
           0.03,
           6.373764820098877
         ],
@@ -125,7 +127,7 @@
       "kitchenCupboard_01": {
         "uniform_scale": 0.38,
         "absolute_translation": [
-          0.580730934143066,
+          0.435,
           1.53,
           6.373764820098877
         ],
@@ -156,7 +158,7 @@
         "uniform_scale": 0.4,
         "translation_override_y": 0.0,
         "relative_translation": [
-          0.07,
+          0.0,
           0.0,
           0.0
         ],
@@ -189,7 +191,7 @@
       "fridge": {
         "absolute_translation": [
           -2.1782121658325195,
-          0.9755649566650391,
+          1.01,
           -1.04
         ],
         "absolute_rotation": [
@@ -247,7 +249,7 @@
         "uniform_scale": 0.4,
         "translation_override_y": 0.0,
         "relative_translation": [
-          0.07,
+          0.0,
           0.0,
           0.0
         ],
@@ -280,7 +282,7 @@
       "fridge": {
         "absolute_translation": [
           -2.1782121658325195,
-          0.9755649566650391,
+          1.01,
           -0.24
         ],
         "absolute_rotation": [
@@ -338,7 +340,7 @@
         "uniform_scale": 0.4,
         "translation_override_y": 0.0,
         "relative_translation": [
-          0.07,
+          0.0,
           0.0,
           0.0
         ],
@@ -371,7 +373,7 @@
       "fridge": {
         "absolute_translation": [
           -2.1782121658325195,
-          0.9755649566650391,
+          1.01,
           3.6299728393554688
         ],
         "absolute_rotation": [
@@ -429,7 +431,7 @@
         "uniform_scale": 0.4,
         "translation_override_y": 0.0,
         "relative_translation": [
-          0.07,
+          0.0,
           0.0,
           0.0
         ],
@@ -462,7 +464,7 @@
       "fridge": {
         "absolute_translation": [
           0.8183235287666321,
-          0.9755649566650391,
+          1.01,
           7.551066970825195
         ],
         "absolute_rotation": [
