@@ -32,7 +32,6 @@
 #include "CollisionMeshData.h"
 #include "GenericMeshData.h"
 #include "GenericSemanticMeshData.h"
-#include "MeshData.h"
 #include "MeshMetaData.h"
 #include "RenderAssetInstanceCreationInfo.h"
 #include "esp/geo/VoxelGrid.h"

@@ -160,7 +160,7 @@ class GenericSemanticMeshData : public BaseMesh {
 
   /**
    * @brief Whether or not this mesh can be partitioned - either object IDs were
-   * found in vertices or per-vert region partition values were found from
+   * found in vertices or per-vert region-based partition values were found from
    * semantic descriptor file.
    */
   bool meshHasPartitionIDXs = false;

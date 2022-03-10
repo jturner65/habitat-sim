@@ -76,7 +76,7 @@ GenericSemanticMeshData::buildSemanticMeshData(
 
   // initialize per-vertex color array
   Cr::Containers::Array<Mn::Color3ub> meshColors{Mn::NoInit, numVerts};
-  // build color array from colors present in mesh
+  // build color array from vertex colors present in mesh
   semanticMeshData->convertMeshColors(srcMeshData, convertToSRGB, meshColors);
 
   Cr::Utility::copy(meshColors,
@@ -88,8 +88,12 @@ GenericSemanticMeshData::buildSemanticMeshData(
 
   // Whether or not the objectIds were provided by the source file. If so then
   // we assume they can be used to provide islands to split the semantic mesh
-  // for better frustum culling.
-  bool objIdsFromSrcMesh = false;
+  // for better frustum culling. If object IDs are lacking, attempt to use
+  // vertex color to infer objectIDs, where each unique color corresponds to a
+  // unique objectID. These ids should probably not be used to split the mesh
+  // into submeshes for culling purposes, since there may be very many different
+  // vertex colors.
+  semanticMeshData->meshHasPartitionIDXs = false;
 
   // Whether or not region partitions are provided in the SSD file. If so then
   // we assume they can be used to provide islands to split the semantic mesh
@@ -100,11 +104,14 @@ GenericSemanticMeshData::buildSemanticMeshData(
   semanticMeshData->nonSSDVertColorIDs.clear();
   semanticMeshData->nonSSDVertColorCounts.clear();
 
+  // Build
+
   if (srcMeshData.hasAttribute(Mn::Trade::MeshAttribute::ObjectId)) {
     // Per-mesh vertex semantic object ids are provided - this will override any
     // vertex colors provided in file
     objectIds = srcMeshData.objectIdsAsArray();
-    objIdsFromSrcMesh = true;
+    // Use the object IDs provided by the source mesh as partition IDs
+    semanticMeshData->meshHasPartitionIDXs = true;
     const int maxVal = Mn::Math::max(objectIds);
     ESP_CHECK(maxVal <= 65535, Cr::Utility::formatString(
                                    "{}Object IDs can't be stored into 16 bits "
@@ -121,19 +128,13 @@ GenericSemanticMeshData::buildSemanticMeshData(
     // No Object IDs defined - assign them based on colors at verts, if they
     // exist
 
-    // If object IDs are lacking, use vertex color to infer objectIDs, where
-    // each unique color corresponds to a unique objectID.
-    // These ids should probably not be used to split the mesh into submeshes
-    // for culling purposes, since there may be very many different vertex
-    // colors.
-    objIdsFromSrcMesh = false;
-
     // If a vertex color array and array of semantic ids are provided via a
     // semantic scene descriptor, use these to replace the idxs found in using
     // the removeDuplicatesInPlace process and their color mappings
     if (semanticScene && semanticScene->hasVertColorsDefined()) {
       // built partion IDs from SSD regions, to split mesh for culling, instead
-      // of objectIDs
+      // of objectIDs.  Assumes semantic objects in semanticScene have regions
+      // defined.
       semanticMeshData->meshUsesSSDPartitionIDs = true;
 
       // from SSD's objects_ array - this is the number of defined semantic
@@ -234,10 +235,14 @@ GenericSemanticMeshData::buildSemanticMeshData(
     } else {
       // Per vertex colors provided, but no semantic scene provided to provide
       // color->id mapping, or no viable mapping from color to semantic ID
-      // provided within semantic scene so build a mapping based on colors at
+      // provided within semantic scene; build a mapping based on colors at
       // vertices - first time we see a color gets first id, etc.
+      // However, in this case, there's no pertinent data to use to potentially
+      // partition this mesh for culling, since there may be a large number of
+      // unique vertex color mappings.
 
-      // no remapping provided by SSD so just use what is synthesized
+      // no remapping provided by SSD so just use what is synthesized based on
+      // vertex colors.
       Cr::Containers::Array<Mn::Color3ub> colorsThatBecomeTheColorMap{
           Mn::NoInit, meshColors.size()};
       // copy the meshColors into colorsThatBecomeTheColorMap
@@ -267,13 +272,17 @@ GenericSemanticMeshData::buildSemanticMeshData(
 
   // Mesh has partition IDXs if they were provided as per-vert values or via SSD
   // color->region mappings
-  semanticMeshData->meshHasPartitionIDXs =
-      (objIdsFromSrcMesh || semanticMeshData->meshUsesSSDPartitionIDs);
+  semanticMeshData->meshHasPartitionIDXs |=
+      semanticMeshData->meshUsesSSDPartitionIDs;
 
   semanticMeshData->collisionMeshData_.primitive = Mn::MeshPrimitive::Triangles;
   semanticMeshData->updateCollisionMeshData();
 
   if (semanticScene && (semanticScene->buildBBoxFromVertColors())) {
+    // Fraction of maximum size bbox to use for disconnected CCs.  This can
+    // be used to merge disonnected components that have a large population,
+    // while still ignoring small CCs that are probably more indicative of
+    // errors.  If fraction is 0.0, use all CCs to build Semantic BBs
     float fractionOfMaxBBoxSize = semanticScene->CCFractionToUseForBBox();
 
     if (fractionOfMaxBBoxSize > 0.0f) {
@@ -288,7 +297,7 @@ GenericSemanticMeshData::buildSemanticMeshData(
           clrsToComponents =
               geo::findCCsByGivenColor(adjList, semanticMeshData->cpu_cbo_);
 
-      // FOR VERT-BASED OBB CALC build semantic (actually AABBs currently)
+      // FOR VERT-BASED SEMANTIC OBB CALC (actually AABBs currently)
       // only use CCs that have some fraction of largest CC's bbox volume.
       // Currently uses only max volume CC bbox for disjoint semantic regions.
       semanticMeshData->unMappedObjectIDXs =
@@ -296,7 +305,7 @@ GenericSemanticMeshData::buildSemanticMeshData(
               semanticMeshData->cpu_vbo_, clrsToComponents, semanticScene,
               fractionOfMaxBBoxSize, dbgMsgPrefix);
     } else {
-      // FOR VERT-BASED OBB CALC build semantic (actually AABBs currently)
+      // FOR VERT-BASED SEMANTIC OBB CALC (actually AABBs currently)
       // uses all vertex annotations, including disconnected components.
       semanticMeshData->unMappedObjectIDXs =
           scene::SemanticScene::buildSemanticOBBs(

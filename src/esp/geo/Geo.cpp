@@ -336,6 +336,7 @@ Mn::Trade::MeshData buildTrajectoryTubeSolid(
   }
 
   // # of vertices in resultant tube == # circle verts * # points in trajectory
+  // add 2 for the center points for the end caps
   const Mn::UnsignedInt vertexCount = numSegments * trajSize + 2;
   // a function-local struct representing a vertex
   struct Vertex {
@@ -469,7 +470,7 @@ Mn::Trade::MeshData buildTrajectoryTubeSolid(
   }
   int offset = numSegments * (trajSize - 1);
 
-  // end caps - verts added at the end of the vertices array
+  // end caps - Note center verts added at the end of the vertices array
   for (Mn::UnsignedInt circleIx = 0; circleIx < numSegments; ++circleIx) {
     // first endcap
     Mn::UnsignedInt ix = circleIx;

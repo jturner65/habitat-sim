@@ -19,7 +19,6 @@
 #include <Magnum/Mesh.h>
 #include <Magnum/Trade/MeshData.h>
 #include "CollisionMeshData.h"
-#include "MeshData.h"
 #include "esp/core/Esp.h"
 #include "esp/gfx/magnum.h"
 

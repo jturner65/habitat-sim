@@ -66,7 +66,6 @@
 #include "CollisionMeshData.h"
 #include "GenericMeshData.h"
 #include "GenericSemanticMeshData.h"
-#include "MeshData.h"
 
 #ifdef ESP_BUILD_PTEX_SUPPORT
 #include "PTexMeshData.h"
@@ -3033,13 +3032,13 @@ bool ResourceManager::outputMeshMetaDataToObj(
         meshes_.at(node.meshIDLocal + metaData.meshIndex.first)
             ->getCollisionMeshData();
     for (auto& pos : meshData.positions) {
-      Mn::Utility::formatInto(out, out.size(), "{0} {1} {2} {3}{4}", "v",
+      Cr::Utility::formatInto(out, out.size(), "{0} {1} {2} {3}{4}", "v",
                               pos[0], pos[1], pos[2], "\n");
       numVertices++;
     }
   }
 
-  Mn::Utility::formatInto(out, out.size(), "{0} {1} {2}",
+  Cr::Utility::formatInto(out, out.size(), "{0} {1} {2}",
                           "# Number of vertices", numVertices, "\n\n");
 
   // Now do second pass to write indices for each group (node)
@@ -3049,10 +3048,10 @@ bool ResourceManager::outputMeshMetaDataToObj(
     CollisionMeshData& meshData =
         meshes_.at(node.meshIDLocal + metaData.meshIndex.first)
             ->getCollisionMeshData();
-    Mn::Utility::formatInto(out, out.size(), "{0}{1} {2}", "g part_", numParts,
+    Cr::Utility::formatInto(out, out.size(), "{0}{1} {2}", "g part_", numParts,
                             "mesh\n");
     for (int ix = 0; ix < meshData.indices.size(); ix += 3) {
-      Mn::Utility::formatInto(out, out.size(), "{0} {1} {2} {3}{4}", "f",
+      Cr::Utility::formatInto(out, out.size(), "{0} {1} {2} {3}{4}", "f",
                               meshData.indices[ix] + globalVertexNum,
                               meshData.indices[ix + 1] + globalVertexNum,
                               meshData.indices[ix + 2] + globalVertexNum, "\n");
