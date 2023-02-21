@@ -3,7 +3,7 @@
 # hm3d_configs.py : This program will synthesize all the stage
 # configs required for HM3D dataset.  Currently we do not use
 # this to synthesize configs, but rather have hand tooled Scene
-# Dataset Configs that use wildecards to support all the scenes
+# Dataset Configs that use wildcards to support all the scenes
 # within a particular partition.
 
 # NOTE : due to the addition of glob/wildcard support to the
