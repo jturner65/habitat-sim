@@ -14,9 +14,10 @@ import glb_mesh_tools as gut
 ###
 # JSON Configuration file for running this application.
 # MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_AI2Thor.json"
-MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD.json"
+# MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD.json"
 # MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_ReplicaCAD_baked.json"
 # MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_floorplanner.json"
+MESH_DECON_CONFIG_JSON_FILENAME = "mesh_decon_new_fp.json"
 
 
 def build_default_configs():
@@ -423,7 +424,6 @@ def extract_stage_from_scene(
 
     # build stage glb by deconstructing aggregate scene
     if configs["build_stage_glbs"]:
-
         # objects in the objects-tag subgraph that should be included in the stage and not treated as objects
         include_obj_dict = {}
         include_obj_dict[configs["objects_tag"]] = configs["stage_include_obj_substr"]
@@ -537,7 +537,6 @@ def extract_objects_from_scene(
                     break
         if obj_is_valid:
             objects.append(obj_name)
-    from collections import defaultdict
 
     # set objects motion type
     default_str = "STATIC" if configs["objects_all_static"] else "DYNAMIC"
