@@ -36,7 +36,6 @@ JSON_MOD_VALS = {"scale": [5.0, 5.0, 5.0]}
 
 
 def main():
-
     # get all files in specified directory whose names match passed regex string
     # returns list of tuples of path,dirnames, file names
     file_list = ut.get_files_matching_regex(CONFIG_BASE_DIR, f"{CONFIG_FILE_RE}.json")

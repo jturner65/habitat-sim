@@ -14,6 +14,7 @@ STAT_SCENE_GLBS_DIR = "../../data/datasets/replicaCAD_extra_scenes/"
 # Ignore objects within queried scenes that have these substrings in their names
 IGNORE_OBJECT_NAMES = ["door", "frl_apartment_lower_shelf_01_part_01"]
 
+
 # Build a dictionary containing all scene object statatistics
 def calc_object_stats(obj_per_scene_transforms, obj_max_per_scene_counts):
     all_obj_location_stats = {}

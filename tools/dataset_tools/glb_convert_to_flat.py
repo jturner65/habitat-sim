@@ -17,7 +17,6 @@ GLB_UNLIT_DEST_DIR = "/home/john/Facebook/habitat-sim/data/scene_datasets/replic
 
 
 def main():
-
     # get all files in specified directory whose names match passed regex string
     # returns list of tuples of path,dirnames, file names
     src_file_list = ut.get_files_matching_regex(GLB_SOURCE_DIR, ".*\\.glb")
