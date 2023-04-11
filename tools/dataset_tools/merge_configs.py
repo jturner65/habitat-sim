@@ -25,7 +25,6 @@ os.makedirs(CONFIG_DEST_DIR, exist_ok=True)
 
 
 def main():
-
     # Build a dictionary keyed by config file name where value is a tuple holding the fully
     # qualified source path to the file and the fully qualified dest path for the file.
     config_json_dict = ut.build_config_src_dest_dict(

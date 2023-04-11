@@ -36,7 +36,6 @@ SCENE_INSTANCE_FILE_RE = "^apt_[0-9].scene_instance"
 
 
 def main():
-
     # get all files in specified directory whose names match passed regex string
     # returns list of tuples of path,dirnames, file names
     file_list = ut.get_files_matching_regex(
