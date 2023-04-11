@@ -726,7 +726,6 @@ def extract_light_from_json(
 
 
 def extract_lighting_from_gltf(scene_filename_glb: str, lights_tag: str):
-
     # Get json from glb file
     # TODO : translation/rotation information for lights to our format of position/direction
     print(
