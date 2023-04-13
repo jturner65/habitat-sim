@@ -557,6 +557,12 @@ Key Commands:
    */
   void setSceneInstanceFromListAndShow(int nextSceneInstanceIDX);
 
+  /**
+   * TEMP Test a specific layout - cycles through 4
+   */
+  void testSpecificLayout();
+  void initSimAndMgrs();
+
   // The MetadataMediator can exist independent of simulator
   // and provides access to all managers for currently active scene dataset
   std::shared_ptr<esp::metadata::MetadataMediator> MM_;
@@ -1460,6 +1466,103 @@ void Viewer::setSceneInstanceFromListAndShow(int nextSceneInstanceIDX) {
   bindRenderTarget();
 }  // Viewer::setSceneInstanceFromListAndShow
 
+/////////////////////////////////////////
+// Obj Placement Test
+#define TEST_ASSETS "/home/john/Facebook/habitat-sim/src/../data/test_assets"
+
+esp::gfx::LightSetup lightSetup1_{{Magnum::Vector4{1.0f, 1.5f, 0.5f, 0.0f},
+                                   {5.0, 5.0, 0.0},
+                                   esp::gfx::LightPositionModel::Camera}};
+esp::gfx::LightSetup lightSetup2_{{Magnum::Vector4{0.0f, 0.5f, 1.0f, 0.0f},
+                                   {0.0, 5.0, 5.0},
+                                   esp::gfx::LightPositionModel::Camera}};
+
+const std::string OBJ_TEMPLATE_HANDLE =
+    Cr::Utility::Path::join(TEST_ASSETS,
+                            "objects/nested_box.object_config.json");
+
+bool SIM_AND_MGRS_ARE_INIT = false;
+
+int SETUP_TO_USE = 0;
+
+void Viewer::initSimAndMgrs() {
+  simulator_->setLightSetup(lightSetup1_, "custom_lighting_1");
+  simulator_->setLightSetup(lightSetup2_, "custom_lighting_2");
+  auto objAttrMgr = simulator_->getObjectAttributesManager();
+  objAttrMgr->loadAllJSONConfigsFromPath(
+      Cr::Utility::Path::join(TEST_ASSETS, "objects/nested_box"), true);
+
+  // Create and test observations with scale negative in each of x, y and z
+  // directions
+  Cr::Containers::StringView testAxis[3] = {"X axis", "Y axis", "Z axis"};
+  for (int i = 0; i < 3; ++i) {
+    esp::metadata::attributes::ObjectAttributes::ptr newObjAttr =
+        objAttrMgr->getObjectCopyByHandle(OBJ_TEMPLATE_HANDLE);
+
+    Mn::Vector3 scale = newObjAttr->getScale();
+    // change x, y, or z scale to be negative
+    scale[i] *= -1.0f;
+    // // temp fail test
+    // if (i == 1) {
+    //   scale[1] = 2;
+    //   scale *= 2.0f;
+    // }
+    // Set modified scale
+    newObjAttr->setScale(scale);
+    // Register new object attributes with negative scale along a single axis
+    // using a new name
+    const std::string newObjHandle =
+        Cr::Utility::formatString("scale_{}_{}", i, OBJ_TEMPLATE_HANDLE);
+    objAttrMgr->registerObject(newObjAttr, newObjHandle);
+  }
+}
+void Viewer::testSpecificLayout() {
+  if (!SIM_AND_MGRS_ARE_INIT) {
+    initSimAndMgrs();
+    SIM_AND_MGRS_ARE_INIT = true;
+  }
+  std::string objTmpltHandle;
+  if (SETUP_TO_USE <= 0) {
+    // base
+    objTmpltHandle = OBJ_TEMPLATE_HANDLE;
+    ++SETUP_TO_USE;
+  } else if (SETUP_TO_USE == 1) {
+    // x axis
+    objTmpltHandle =
+        Cr::Utility::formatString("scale_{}_{}", 0, OBJ_TEMPLATE_HANDLE);
+    ++SETUP_TO_USE;
+  } else if (SETUP_TO_USE == 2) {
+    // y axis
+    objTmpltHandle =
+        Cr::Utility::formatString("scale_{}_{}", 1, OBJ_TEMPLATE_HANDLE);
+
+    ++SETUP_TO_USE;
+  } else if (SETUP_TO_USE >= 3) {
+    // z axis
+    objTmpltHandle =
+        Cr::Utility::formatString("scale_{}_{}", 2, OBJ_TEMPLATE_HANDLE);
+    SETUP_TO_USE = 0;
+  }
+
+  ESP_DEBUG() << "testSpecificLayout : adding 2 objects with name "
+              << objTmpltHandle;
+  auto rigidObjMgr = simulator_->getRigidObjectManager();
+  // Get rid of last iteration's objs
+  rigidObjMgr->removeAllObjects();
+
+  auto obj = rigidObjMgr->addObjectByHandle(objTmpltHandle, nullptr,
+                                            "custom_lighting_1");
+  obj->setTranslation({-1.0f, 1.5f, -2.5f});
+
+  auto otherObj = rigidObjMgr->addObjectByHandle(objTmpltHandle, nullptr,
+                                                 "custom_lighting_2");
+  otherObj->setTranslation({1.0f, 1.5f, -2.5f});
+
+}  // Viewer::testSpecificLayout()
+
+/////////////////////////////////////////
+// End Obj Placement Test
+
 /**
  * @brief Set the sensorVisID_ string used to determine which sensor to pull an
  * observation from.  Should be set whenever visualizeMode_ or sensorMode_
@@ -2179,6 +2282,10 @@ void Viewer::keyPressEvent(KeyEvent& event) {
         setSceneInstanceFromListAndShow(getNextSceneInstanceIDX(
             (event.modifiers() & Modifier::Shift) ? -1 : 1));
       }
+      break;
+    case KeyEvent::Key::F1:
+      // TEMP TO TEST SPECIFIC LAYOUT - press repeated to cycle
+      testSpecificLayout();
       break;
     case Key::Space:
       simulating_ = !simulating_;
