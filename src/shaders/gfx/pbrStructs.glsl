@@ -41,12 +41,13 @@ struct ClearCoatData {
 #if defined(SPECULAR_LAYER)
 // Struct holding uniform data
 struct SpecularLayerData {
-  float factor;  // The strength of the specular reflection.
-                 // If SpecularLayerTexture exists, multiply it with this value.
-  vec3 colorFactor;  // The F0 (Fresnel reflectance at normal incidence) color
-                     // of the specular reflection (linear RGB). If
-                     // SpecularLayerColorTexture exists, multiply it with this
-                     // value.
+  // The strength of the specular reflection. If SpecularLayerTexture exists,
+  // multiply it with this value.
+  float factor;
+  // The F0 (Fresnel reflectance at normal incidence) color of the specular
+  // reflection (linear RGB). If SpecularLayerColorTexture exists, multiply it
+  // with this value.
+  vec3 colorFactor;
 };
 #endif  // SPECULAR_LAYER
 
@@ -55,14 +56,15 @@ struct SpecularLayerData {
 #if defined(ANISOTROPY_LAYER)
 // Struct holding uniform data for anisotropy layer
 struct AnisotropyLayerData {
-  float factor;    // The anisotropy strength. When anisotropyTexture is
-                   // present, this value is multiplied by the blue channel.
-  vec2 direction;  // [ cos(anisotropyRotation), sin(anisotropyRotation) ]
-                   // Built from the rotation of the anisotropy in tangent,
-                   // bitangent space, measured in radians counter-clockwise
-                   // from the tangent. When anisotropyTexture is present,
-                   // anisotropyRotation provides additional rotation to
-                   // the vectors in the texture.
+  // The anisotropy strength. When anisotropyTexture is present, this value is
+  // multiplied by the blue channel.
+  float factor;
+  //[ cos(anisotropyRotation), sin(anisotropyRotation) ]. Built from the
+  // rotation of the anisotropy in tangent, bitangent space, measured in radians
+  // counter-clockwise from the tangent. When anisotropyTexture is present,
+  // anisotropyRotation provides additional rotation to the vectors in the
+  // texture.
+  vec2 direction;
 };
 
 #if (LIGHT_COUNT > 0)
@@ -80,10 +82,26 @@ struct AnisotropyDirectLight {
   // cos angle between bitangent and halfvector
   float b_dot_h;
 };
-
 #endif  // if (LIGHT_COUNT > 0)
-
 #endif  // ANISOTROPY_LAYER
+
+///////////////////
+// Volume layer support
+#if defined(VOLUME_LAYER)
+// Struct holding volume layer data
+struct VolumeLayerData {
+  // The thickness of the volume beneath the surface. If thicknessTexture is
+  // provided then this value is multiplied by the G channel
+  float thicknessFactor;
+  // Density of the medium given as the average distance that light travels
+  // in the medium before interacting with a particle. The value is given in
+  // world space. Range is (0, +inf). Default is inf (treat -1).
+  float attenuationDist;
+  // The color that white light turns into due to absorption when reaching the
+  // attenuation distance
+  vec3 attenuationColor;
+};
+#endif  // VOLUME_LAYER
 
 #if (LIGHT_COUNT > 0)
 /////////////////////

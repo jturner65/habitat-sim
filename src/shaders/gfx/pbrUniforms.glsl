@@ -46,6 +46,14 @@ uniform int uPbrDebugDisplay;
 //#define SKIP_CALC_SPECULAR_LAYER
 #endif
 
+#if defined(TRANSMISSION_LAYER)
+//#define SKIP_CALC_TRANSMISSION_LAYER
+#endif
+
+#if defined(VOLUME_LAYER)
+//#define SKIP_CALC_VOLUME_LAYER
+#endif
+
 #if defined(NORMAL_TEXTURE)
 //#define SKIP_CALC_NORMAL_TEXTURE
 #endif
@@ -111,6 +119,25 @@ uniform sampler2D uAnisotropyLayerTexture;
 #endif  // ANISOTROPY_LAYER_TEXTURE
 
 #endif  // ANISOTROPY_LAYER
+
+#if defined(TRANSMISSION_LAYER)
+// The base percentage of light that is transmitted through the surface.
+uniform float uTransmissionFactor;
+
+#if defined(TRANSMISSION_LAYER_TEXTURE)
+uniform sampler2D uTransmissionLayerTexture;
+#endif  // TRANSMISSION_LAYER_TEXTURE
+
+#endif  // TRANSMISSION_LAYER
+
+#if defined(VOLUME_LAYER)
+uniform VolumeLayerData uVolumeLayerData;
+
+#if defined(VOLUME_LAYER_THICKNESS_TEXTURE)
+uniform sampler2D uVolumeLayerThicknessTexture;
+#endif  // VOLUME_LAYER_THICKNESS_TEXTURE
+
+#endif  // VOLUME_LAYER
 
 // -------------- lights and/or IBL -------------------
 
