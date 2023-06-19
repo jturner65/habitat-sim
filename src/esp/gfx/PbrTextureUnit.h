@@ -26,10 +26,12 @@ enum TextureUnit : uint8_t {
   SpecularLayer = 7,
   SpecularLayerColor = 8,
   AnisotropyLayer = 9,
-  EnvironmentMap = 10,
-  IrradianceMap = 11,
-  BrdfLUT = 12,
-  PrefilteredMap = 13,
+  TransmissionLayer = 10,
+  VolumeLayer = 11,
+  EnvironmentMap = 12,
+  IrradianceMap = 13,
+  BrdfLUT = 14,
+  PrefilteredMap = 15,
 
 };
 }  // namespace pbrTextureUnitSpace

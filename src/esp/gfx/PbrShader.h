@@ -471,6 +471,18 @@ class PbrShader : public Magnum::GL::AbstractShaderProgram {
   PbrShader& bindAnisotropyLayerTexture(Magnum::GL::Texture2D& texture);
 
   /**
+   * @brief Bind the transmission layer texture
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindTransmissionLayerTexture(Magnum::GL::Texture2D& texture);
+
+  /**
+   * @brief Bind the volume layer thickness texture
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindVolumeLayerThicknessTexture(Magnum::GL::Texture2D& texture);
+
+  /**
    * @brief Bind the irradiance cubemap texture
    * @return Reference to self (for method chaining)
    */
@@ -593,6 +605,33 @@ class PbrShader : public Magnum::GL::AbstractShaderProgram {
    */
   PbrShader& setAnisotropyLayerDirection(
       const Magnum::Vector2& anisoLayerDirection);
+
+  /**
+   * @brief Set transmission layer strength factor
+   * @return Reference to self (for method chaining)
+   */
+
+  PbrShader& setTransmissionLayerFactor(float transLayerFactor);
+
+  /**
+   * @brief Set volume layer thickness factor
+   * @return Reference to self (for method chaining)
+   */
+
+  PbrShader& setVolumeLayerFactor(float volLayerFactor);
+
+  /**
+   * @brief Set volume layer attenuation distance
+   * @return Reference to self (for method chaining)
+   */
+
+  PbrShader& setVolumeLayerAttenuation(float volLayerAttenuation);
+
+  /**
+   * @brief Set volume layer thickness factor
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& setVolumeLayerAttenuationColor(const Magnum::Color3& color);
 
   /**
    *  @brief Set object id to the uniform on GPU
@@ -896,19 +935,23 @@ class PbrShader : public Magnum::GL::AbstractShaderProgram {
 
   // Clearcoat layer
   int clearCoatFactorUniform_ = ID_UNDEFINED;
-
   int clearCoatTextureScaleUniform_ = ID_UNDEFINED;
-
   int clearCoatRoughnessUniform_ = ID_UNDEFINED;
 
   // Specular Layer
   int specularLayerFactorUniform_ = ID_UNDEFINED;
-
   int specularLayerColorFactorUniform_ = ID_UNDEFINED;
 
+  // Anisotropy Layer
   int anisotropyLayerFactorUniform_ = ID_UNDEFINED;
-
   int anisotropyLayerDirectionUniform_ = ID_UNDEFINED;
+
+  // Transmission layer
+  int transmissionLayerFactorUniform_ = ID_UNDEFINED;
+  // Volume Layer
+  int volumeLayerFactorUniform_ = ID_UNDEFINED;
+  int volumeLayerAttenuationUniform_ = ID_UNDEFINED;
+  int volumeLayerAttenuationColorUniform_ = ID_UNDEFINED;
 
   // scales
   int componentScalesUniform_ = ID_UNDEFINED;

@@ -583,6 +583,27 @@ void PbrDrawable::draw(const Mn::Matrix4& transformationMatrix,
     }
   }
 
+  // Transmission layer data
+  if (flags_ & PbrShader::Flag::TransmissionLayer) {
+    (*shader_).setTransmissionLayerFactor(matCache.transmissionLayer.factor);
+    if (flags_ >= PbrShader::Flag::TransmissionLayerTexture) {
+      shader_->bindTransmissionLayerTexture(
+          *matCache.transmissionLayer.texture);
+    }
+  }
+
+  // Volume layer data
+  if (flags_ & PbrShader::Flag::VolumeLayer) {
+    (*shader_)
+        .setVolumeLayerFactor(matCache.volumeLayer.thicknessFactor)
+        .setVolumeLayerAttenuation(matCache.volumeLayer.attenuationDist)
+        .setVolumeLayerAttenuationColor(matCache.volumeLayer.attenuationColor);
+    if (flags_ >= PbrShader::Flag::VolumeLayerThicknessTexture) {
+      shader_->bindVolumeLayerThicknessTexture(
+          *matCache.volumeLayer.thicknessTexture);
+    }
+  }
+
   // Set gamma value to use for srgb remapping if being used
   // Setter does appropriate checking
   shader_->setGamma(shaderConfig_.gamma);

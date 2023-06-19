@@ -211,9 +211,26 @@ PbrShader::PbrShader(const Configuration& config)
       .addSource(flags_ >= Flag::AnisotropyLayerTexture
                      ? "#define ANISOTROPY_LAYER_TEXTURE\n"
                      : "")
+
+      // Transmission Layer
+      .addSource(flags_ >= Flag::TransmissionLayer
+                     ? "#define TRANSMISSION_LAYER\n"
+                     : "")
+      .addSource(flags_ >= Flag::TransmissionLayerTexture
+                     ? "#define TRANSMISSION_LAYER_TEXTURE\n"
+                     : "")
+
+      // Volume Layer
+      .addSource(flags_ >= Flag::VolumeLayer ? "#define VOLUME_LAYER\n" : "")
+      .addSource(flags_ >= Flag::VolumeLayerThicknessTexture
+                     ? "#define VOLUME_LAYER_THICKNESS_TEXTURE\n"
+                     : "")
+
+      // Precomputed Tangent
       .addSource(flags_ >= Flag::PrecomputedTangent
                      ? "#define PRECOMPUTED_TANGENT\n"
                      : "")
+      // IBL
       .addSource(flags_ >= Flag::ImageBasedLighting
                      ? "#define IMAGE_BASED_LIGHTING\n"
                      : "")
@@ -381,6 +398,29 @@ PbrShader::PbrShader(const Configuration& config)
       }
     }
 
+    // transmission layer data and texture
+    if (flags_ & Flag::TransmissionLayer) {
+      transmissionLayerFactorUniform_ = uniformLocation("uTransmissionFactor");
+      if (flags_ >= Flag::TransmissionLayerTexture) {
+        setUniform(uniformLocation("uTransmissionLayerTexture"),
+                   pbrTextureUnitSpace::TextureUnit::TransmissionLayer);
+      }
+    }
+
+    // volume layer data and texture
+    if (flags_ & Flag::VolumeLayer) {
+      volumeLayerFactorUniform_ =
+          uniformLocation("uVolumeLayerData.thicknessFactor");
+      volumeLayerAttenuationUniform_ =
+          uniformLocation("uVolumeLayerData.attenuationDist");
+      volumeLayerAttenuationColorUniform_ =
+          uniformLocation("uVolumeLayerData.attenuationColor");
+      if (flags_ >= Flag::VolumeLayerThicknessTexture) {
+        setUniform(uniformLocation("uVolumeLayerThicknessTexture"),
+                   pbrTextureUnitSpace::TextureUnit::VolumeLayer);
+      }
+    }
+
   }  // if lighting is enabled
 
   // lights
@@ -456,6 +496,9 @@ PbrShader::PbrShader(const Configuration& config)
       setAnisotropyLayerFactor(0.0f);
       // Default to 0 rotation
       setAnisotropyLayerDirection({1.0f, 0.0f});
+    }
+    if (flags_ & PbrShader::Flag::TransmissionLayer) {
+      setTransmissionLayerFactor(0.0f);
     }
   }
 
@@ -621,6 +664,31 @@ PbrShader& PbrShader::bindAnisotropyLayerTexture(Mn::GL::Texture2D& texture) {
   return *this;
 }
 
+PbrShader& PbrShader::bindTransmissionLayerTexture(Mn::GL::Texture2D& texture) {
+  CORRADE_ASSERT(
+      flags_ >= Flag::TransmissionLayerTexture,
+      "PbrShader::bindTransmissionLayerTexture(): the shader was not "
+      "created with transmission layer texture enabled",
+      *this);
+  if (lightingIsEnabled_) {
+    texture.bind(pbrTextureUnitSpace::TextureUnit::TransmissionLayer);
+  }
+  return *this;
+}
+
+PbrShader& PbrShader::bindVolumeLayerThicknessTexture(
+    Mn::GL::Texture2D& texture) {
+  CORRADE_ASSERT(
+      flags_ >= Flag::VolumeLayerThicknessTexture,
+      "PbrShader::bindVolumeLayerThicknessTexture(): the shader was not "
+      "created with volume layer thickness texture enabled",
+      *this);
+  if (lightingIsEnabled_) {
+    texture.bind(pbrTextureUnitSpace::TextureUnit::VolumeLayer);
+  }
+  return *this;
+}
+
 PbrShader& PbrShader::bindIrradianceCubeMap(Mn::GL::CubeMapTexture& texture) {
   CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
                  "PbrShader::bindIrradianceCubeMap(): the shader was not "
@@ -745,6 +813,14 @@ PbrShader& PbrShader::setSpecularLayerFactor(float specLayerFactor) {
   return *this;
 }
 
+PbrShader& PbrShader::setSpecularLayerColorFactor(
+    const Mn::Color3& specLayerColorFactor) {
+  if (lightingIsEnabled_) {
+    setUniform(specularLayerColorFactorUniform_, specLayerColorFactor);
+  }
+  return *this;
+}
+
 PbrShader& PbrShader::setAnisotropyLayerFactor(float anisoLayerFactor) {
   if (lightingIsEnabled_) {
     setUniform(anisotropyLayerFactorUniform_, anisoLayerFactor);
@@ -760,13 +836,35 @@ PbrShader& PbrShader::setAnisotropyLayerDirection(
   return *this;
 }
 
-PbrShader& PbrShader::setSpecularLayerColorFactor(
-    const Mn::Color3& specLayerColorFactor) {
+PbrShader& PbrShader::setTransmissionLayerFactor(float transLayerFactor) {
   if (lightingIsEnabled_) {
-    setUniform(specularLayerColorFactorUniform_, specLayerColorFactor);
+    setUniform(transmissionLayerFactorUniform_, transLayerFactor);
   }
   return *this;
 }
+
+PbrShader& PbrShader::setVolumeLayerFactor(float volLayerFactor) {
+  if (lightingIsEnabled_) {
+    setUniform(volumeLayerFactorUniform_, volLayerFactor);
+  }
+  return *this;
+}
+
+PbrShader& PbrShader::setVolumeLayerAttenuation(float volLayerAttenuation) {
+  if (lightingIsEnabled_) {
+    setUniform(volumeLayerAttenuationUniform_, volLayerAttenuation);
+  }
+  return *this;
+}
+
+PbrShader& PbrShader::setVolumeLayerAttenuationColor(
+    const Magnum::Color3& color) {
+  if (lightingIsEnabled_) {
+    setUniform(volumeLayerAttenuationColorUniform_, color);
+  }
+  return *this;
+}
+
 PbrShader& PbrShader::setPbrEquationScales(const PbrEquationScales& scales) {
   if (directAndIBLisEnabled_) {
     Mn::Vector4 componentScales{scales.directDiffuse, scales.directSpecular,
