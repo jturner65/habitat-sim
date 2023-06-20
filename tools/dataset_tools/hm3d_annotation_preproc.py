@@ -66,6 +66,9 @@ HM3D_ANNOTATION_SRC_DIR = (
 # )
 
 #
+# Desitnation directory to put results of various reporting processes
+HM3D_ANNOTATION_RPT_DEST_DIR = "/home/john/Datasets In Progress/HM3D_Semantic"
+#
 # Directory to find various data files used to perform tasks
 HM3D_ANNOTATION_DATA_DIR = (
     "/home/john/Datasets In Progress/HM3D_Semantic/Script_Exec_Data"
@@ -593,7 +596,7 @@ def process_and_copy_files(file_names_and_paths: dict):
     # save all missing category tags from spelling-correction mapping of semantic.txt files if performed
     if VALIDATE_TAG_SPELLING:
         with open(
-            os_join(HM3D_ANNOTATION_SRC_DIR, "..", "My_HM3D_Missing_Tags_Taxonomy.csv"),
+            os_join(HM3D_ANNOTATION_RPT_DEST_DIR, "My_HM3D_Missing_Tags_Taxonomy.csv"),
             "w",
         ) as dest:
             for tag in sorted(ERROR_CAT_TAGS):
@@ -602,7 +605,7 @@ def process_and_copy_files(file_names_and_paths: dict):
     # save per-scene corrections of tag spelling corrections
     if VALIDATE_TAG_SPELLING:
         with open(
-            os_join(HM3D_ANNOTATION_SRC_DIR, "..", "Per_Scene_Spelling_Fixes.csv"),
+            os_join(HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Spelling_Fixes.csv"),
             "w",
         ) as dest:
             dest.write("Scene name,Original Tag,Corrected Tag,Num Corrections\n")
@@ -777,7 +780,9 @@ def color_annotation_reports(file_names_and_paths: dict):
         names = count_and_names["names"]
         obj_types_per_count[count].append((objtype, names))
 
-    outputFileName = os_join(HM3D_ANNOTATION_SRC_DIR, "HM3D_CountsOfObjectTypes.csv")
+    outputFileName = os_join(
+        HM3D_ANNOTATION_RPT_DEST_DIR, "HM3D_CountsOfObjectTypes.csv"
+    )
     save_obj_cat_counts(outputFileName, obj_types_per_count)
 
     print("ObjType as specified in annotation text :")
@@ -1174,16 +1179,16 @@ def save_per_cat_data(
     print_debug: Optional[bool] = True,
 ):
     per_tag_region_props_filename = os_join(
-        HM3D_ANNOTATION_SRC_DIR, f"Per_Category_Region_{vote_type_str}_Votes.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, f"Per_Category_Region_{vote_type_str}_Votes.csv"
     )
     per_tag_region_neighborhoods = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Category_Region_Neighbors.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Category_Region_Neighbors.csv"
     )
     per_tag_scene_region_info = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Region_Cat_Prescence.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Region_Cat_Prescence.csv"
     )
     per_category_counts_ignore = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Category_Counts_Uncommon.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Category_Counts_Uncommon.csv"
     )
 
     print(
@@ -1335,17 +1340,17 @@ def save_per_scene_region_data(
 ):
     # per scene per region votes of region/room label based on category tag proposals
     per_scene_per_region_votes = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Region_Votes.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Region_Votes.csv"
     )
     per_scene_per_region_weighted_votes = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Region_Weighted_Votes.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Region_Weighted_Votes.csv"
     )
     # per scene region/room label assignments, based on category tag proposals and per-region vote
     per_scene_total_votes = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Total_Votes.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Total_Votes.csv"
     )
     per_scene_total_weighted_votes = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Total_Weighted_Votes.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Total_Weighted_Votes.csv"
     )
     with open(
         per_scene_per_region_votes,
@@ -1417,11 +1422,11 @@ def save_per_scene_region_data(
     # per scene per region neighbors
     # ttl_num_scenes = len(per_scene_per_region_dict)
     per_scene_per_region_neighborhoods = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Region_Neighborhoods.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Region_Neighborhoods.csv"
     )
     # per scene region, category and object counts and averages
     per_scene_neighborhoods = os_join(
-        HM3D_ANNOTATION_SRC_DIR, "Per_Scene_Neighborhood_Stats.csv"
+        HM3D_ANNOTATION_RPT_DEST_DIR, "Per_Scene_Neighborhood_Stats.csv"
     )
     with open(
         per_scene_per_region_neighborhoods,
@@ -1557,7 +1562,7 @@ def save_scene_region_tag_maps(per_scene_regions: dict):
     IGNORE_TAGS_str = ";".join(IGNORE_TAGS)
     # save per-region lists of tags to csv
     with open(
-        os_join(HM3D_ANNOTATION_SRC_DIR, "Region_Tag_Mappings.csv"),
+        os_join(HM3D_ANNOTATION_RPT_DEST_DIR, "Region_Tag_Mappings.csv"),
         "w",
     ) as dest:
         dest.write(
