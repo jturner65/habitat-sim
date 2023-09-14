@@ -206,6 +206,24 @@ struct RenderTarget::Impl {
                       framebuffer_);
   }
 
+  // Example of scissors process to split frame buffer for split screen results
+  // void tryDrawHbao() {
+  //   if (!hbao_) {
+  //     return;
+  //   }
+  //   // TODO:Support a toggle between cache-aware and classic algorithm. For
+  //   now
+  //   // we just use cache aware
+  //   bool useCacheAware = true;
+  //   auto fbSize = framebufferSize();
+  //   const Mn::Range2Di scissorRange{{0, 0}, {fbSize.x() / 2, fbSize.y()}};
+  //   Mn::GL::Renderer::enable(Mn::GL::Renderer::Feature::ScissorTest);
+  //   Mn::GL::Renderer::setScissor(scissorRange);
+  //   hbao_->drawEffect(visualSensor_->getProjectionMatrix(), useCacheAware,
+  //                     depthRenderTexture_, framebuffer_);
+  //   Mn::GL::Renderer::disable(Mn::GL::Renderer::Feature::ScissorTest);
+  // }
+
   void blitRgbaTo(Mn::GL::AbstractFramebuffer& target,
                   const Mn::Range2Di& targetRectangle) {
     CORRADE_ASSERT(
