@@ -57,10 +57,9 @@ out highp vec3 biTangent;
 out highp vec4 interpolatedVertexColor;
 #endif
 // ------------ uniform ----------------------
-uniform highp mat4 uViewMatrix;
 uniform highp mat3 uNormalMatrix;  // inverse transpose of 3x3 model matrix, NOT
                                    // modelview matrix
-uniform highp mat4 uModelMatrix;
+uniform highp mat4 uModelViewMatrix;
 uniform highp mat4 uProjectionMatrix;
 
 // -------------- skin-related uniforms --------------
@@ -138,7 +137,7 @@ void main() {
   tangent = normalize(tangent - dot(tangent, normal) * normal);
   biTangent = normalize(cross(normal, tangent) * vertexTangent.w);
   // later in .frag, TBN will transform the normal perturbation
-  // (read from normal map) from tangent space to world space,
+  // (read from normal map) from tangent space to camera space,
   // NOT camera space
 #endif
 #ifdef VERTEX_COLOR
@@ -146,5 +145,5 @@ void main() {
   interpolatedVertexColor = vertexColor;
 #endif
 
-  gl_Position = uProjectionMatrix * uViewMatrix * vertexWorldPosition;
+  gl_Position = uProjectionMatrix * vertexWorldPosition;
 }
