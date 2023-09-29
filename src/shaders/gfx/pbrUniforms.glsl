@@ -5,7 +5,7 @@
 precision highp float;
 
 // -------------- input ---------------------
-// position, normal, tangent, biTangent in world space,
+// position, normal, tangent, biTangent in camera space,
 // NOT camera space
 in highp vec3 position;
 in highp vec3 normal;
@@ -23,9 +23,6 @@ in highp vec4 interpolatedVertexColor;
 #if defined(OBJECT_ID)
 uniform highp uint uObjectId;
 #endif
-
-// camera position in world space
-uniform highp vec3 uCameraWorldPos;
 
 #if defined(PBR_DEBUG_DISPLAY)
 uniform int uPbrDebugDisplay;
@@ -164,7 +161,7 @@ uniform vec3 uInvGamma;
 uniform vec3 uLightColors[LIGHT_COUNT];
 uniform float uLightRanges[LIGHT_COUNT];
 
-// lights in world space!
+// lights in camera space
 // if .w == 0, it means it is a directional light, .xyz is the direction;
 // if .w == 1, it means it is a point light, .xyz is the light position;
 // it is NOT put in the Light Structure, simply because we may modify the code
