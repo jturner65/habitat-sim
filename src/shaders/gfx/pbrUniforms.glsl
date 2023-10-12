@@ -175,10 +175,48 @@ uniform float uDirectLightIntensity;
 
 #if defined(IMAGE_BASED_LIGHTING)
 
-uniform samplerCube uIrradianceMap;
 uniform sampler2D uBrdfLUT;
-uniform samplerCube uPrefilteredMap;
 uniform uint uPrefilteredMapMipLevels;
+
+uniform samplerCube uIrradianceMap1;
+uniform samplerCube uPrefilteredMap1;
+
+uniform samplerCube uIrradianceMap2;
+uniform samplerCube uPrefilteredMap2;
+
+uniform samplerCube uIrradianceMap3;
+uniform samplerCube uPrefilteredMap3;
+
+uniform samplerCube uIrradianceMap4;
+uniform samplerCube uPrefilteredMap4;
+
+vec4 getDiffIrradiance(vec3 n) {
+  if (position.x > -8) {
+    if (position.z > 0) {
+      return texture(uIrradianceMap1, n);
+    } else {
+      return texture(uIrradianceMap2, n);
+    }
+  } else if (position.z > 0) {
+    return texture(uIrradianceMap3, n);
+  } else {
+    return texture(uIrradianceMap4, n);
+  }
+}
+
+vec4 getSpecIrradiance(vec3 reflectionDir, float lod) {
+  if (position.x > -8) {
+    if (position.z > 0) {
+      return textureLod(uPrefilteredMap1, reflectionDir, lod);
+    } else {
+      return textureLod(uPrefilteredMap2, reflectionDir, lod);
+    }
+  } else if (position.z > 0) {
+    return textureLod(uPrefilteredMap3, reflectionDir, lod);
+  } else {
+    return textureLod(uPrefilteredMap4, reflectionDir, lod);
+  }
+}
 
 // scales for components in the PBR equation - only necessary if -both- lighting
 // types are present.

@@ -33,6 +33,16 @@ enum TextureUnit : uint8_t {
   BrdfLUT = 14,
   PrefilteredMap = 15,
 
+  BrdfLUT = 11,
+  IrradianceMap1 = 12,
+  IrradianceMap2 = 13,
+  IrradianceMap3 = 14,
+  IrradianceMap4 = 15,
+  PrefilteredMap1 = 16,
+  PrefilteredMap2 = 17,
+  PrefilteredMap3 = 18,
+  PrefilteredMap4 = 19,
+
 };
 }  // namespace pbrTextureUnitSpace
 }  // namespace gfx

@@ -483,12 +483,6 @@ class PbrShader : public Magnum::GL::AbstractShaderProgram {
   PbrShader& bindVolumeLayerThicknessTexture(Magnum::GL::Texture2D& texture);
 
   /**
-   * @brief Bind the irradiance cubemap texture
-   * @return Reference to self (for method chaining)
-   */
-  PbrShader& bindIrradianceCubeMap(Magnum::GL::CubeMapTexture& texture);
-
-  /**
    * @brief Bind the BRDF LUT texture
    * NOTE: requires Flag::ImageBasedLighting is set
    * @return Reference to self (for method chaining)
@@ -496,11 +490,53 @@ class PbrShader : public Magnum::GL::AbstractShaderProgram {
   PbrShader& bindBrdfLUT(Magnum::GL::Texture2D& texture);
 
   /**
+   * @brief Bind the irradiance cubemap texture
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindIrradianceCubeMap1(Magnum::GL::CubeMapTexture& texture);
+
+  /**
    * @brief Bind the prefiltered environment map (cubemap texture)
    * NOTE: requires Flag::ImageBasedLighting is set
    * @return Reference to self (for method chaining)
    */
-  PbrShader& bindPrefilteredMap(Magnum::GL::CubeMapTexture& texture);
+  PbrShader& bindPrefilteredMap1(Magnum::GL::CubeMapTexture& texture);
+  /**
+   * @brief Bind the irradiance cubemap texture
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindIrradianceCubeMap2(Magnum::GL::CubeMapTexture& texture);
+
+  /**
+   * @brief Bind the prefiltered environment map (cubemap texture)
+   * NOTE: requires Flag::ImageBasedLighting is set
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindPrefilteredMap2(Magnum::GL::CubeMapTexture& texture);
+  /**
+   * @brief Bind the irradiance cubemap texture
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindIrradianceCubeMap3(Magnum::GL::CubeMapTexture& texture);
+
+  /**
+   * @brief Bind the prefiltered environment map (cubemap texture)
+   * NOTE: requires Flag::ImageBasedLighting is set
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindPrefilteredMap3(Magnum::GL::CubeMapTexture& texture);
+  /**
+   * @brief Bind the irradiance cubemap texture
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindIrradianceCubeMap4(Magnum::GL::CubeMapTexture& texture);
+
+  /**
+   * @brief Bind the prefiltered environment map (cubemap texture)
+   * NOTE: requires Flag::ImageBasedLighting is set
+   * @return Reference to self (for method chaining)
+   */
+  PbrShader& bindPrefilteredMap4(Magnum::GL::CubeMapTexture& texture);
 
   // ======== set uniforms ===========
   /**
