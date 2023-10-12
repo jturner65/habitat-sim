@@ -3105,23 +3105,37 @@ void ResourceManager::addComponent(
         nullptr,           // PbrIBLHelper - set only if PBR
         nullptr};          // PbrShaderAttributes - set only if PBR
 
+    // compute the bounding box for the mesh we are adding
+    if (computeAbsoluteAABBs) {
+      staticDrawableInfo.emplace_back(StaticDrawableInfo{node, meshID});
+    }
+    BaseMesh* meshBB = meshes_.at(meshID).get();
+    auto nodeBB = computeMeshBB(meshBB);
+
     if (materialDataType == ObjectInstanceShaderType::PBR) {
       // TODO : Query which PbrShaderAttributes to use based on `region` of
       // drawable. Need to have some way of propagating region value - perhaps
       // through scene node like semantic ID, although semantic ID of objects is
       // not present yet.
 
+      int shaderKeyInt =
+          (nodeBB.centerX() > -8 ? 0 : 1) + (nodeBB.centerX() > 0 ? 0 : 2);
+      const std::string shaderKey =
+          Cr::Utility::formatString("{}", shaderKeyInt);
+
       // Currently always using default PbrShaderAttributes for the current
       // Scene.
       esp::metadata::attributes::PbrShaderAttributes::ptr pbrAttributesPtr =
-          metadataMediator_->getDefaultPbrShaderConfig();
-      // get pointer to PbrIBL Helper for this attributes, creating the helper
-      // if it does not exist. Should always exist by here, unless a new or
-      // modified PbrShaderAttributes had been added to the library by the user.
+          metadataMediator_->getPbrShaderConfigByRegion(shaderKey);
+
+      // get the key to the pbrIblhelpers
+      const auto& pbrIblDataKey = pbrAttributesPtr->getPbrShaderHelperKey();
+      // get pointer to PbrIBL Helper
       std::shared_ptr<gfx::PbrIBLHelper> pbrIblData_ =
           getOrBuildPBRIBLHelper(pbrAttributesPtr);
 
       drawableConfig.setPbrIblData(pbrIblData_);
+      drawableConfig.setAllPbrIblData(&pbrIBLHelpers_);
       drawableConfig.setPbrShaderConfig(pbrAttributesPtr);
     }  // if pbr, add appropriate config information
 
@@ -3130,12 +3144,7 @@ void ResourceManager::addComponent(
                    node,                // scene node
                    drawableConfig);     // instance skinning data
 
-    // compute the bounding box for the mesh we are adding
-    if (computeAbsoluteAABBs) {
-      staticDrawableInfo.emplace_back(StaticDrawableInfo{node, meshID});
-    }
-    BaseMesh* meshBB = meshes_.at(meshID).get();
-    node.setMeshBB(computeMeshBB(meshBB));
+    node.setMeshBB(nodeBB);
   }
 
   // Recursively add children

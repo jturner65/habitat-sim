@@ -35,6 +35,17 @@ class DrawableConfiguration {
     pbrIblData_ = std::move(pbrIblData);
   }
 
+  void setAllPbrIblData(
+      std::unordered_map<std::string, std::shared_ptr<esp::gfx::PbrIBLHelper>>*
+          pbrIblHelpers) {
+    pbrIBLHelpers_ = pbrIblHelpers;
+  }
+
+  std::unordered_map<std::string, std::shared_ptr<esp::gfx::PbrIBLHelper>>*
+  getAllPbrIblData() {
+    return pbrIBLHelpers_;
+  }
+
   std::shared_ptr<metadata::attributes::PbrShaderAttributes>
   getPbrShaderConfig() const {
     return pbrShaderConfig_;
@@ -68,6 +79,9 @@ class DrawableConfiguration {
   esp::gfx::DrawableGroup* group_ = nullptr;
 
  protected:
+  std::unordered_map<std::string, std::shared_ptr<esp::gfx::PbrIBLHelper>>*
+      pbrIBLHelpers_ = nullptr;
+
   /**
    * Skin data for use with this drawable, if appropriate.
    */

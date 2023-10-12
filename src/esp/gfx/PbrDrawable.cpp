@@ -25,6 +25,7 @@ PbrDrawable::PbrDrawable(scene::SceneNode& node,
     : Drawable{node, mesh, DrawableType::Pbr, cfg,
                shaderManager.get<LightSetup>(cfg.lightSetupKey_)},
       shaderManager_{shaderManager},
+      pbrIBLHelpers_(cfg.getAllPbrIblData()),
       pbrIbl_(std::move(cfg.getPbrIblData())),
       meshAttributeFlags_{meshAttributeFlags} {
   // Build material cache
@@ -610,13 +611,38 @@ void PbrDrawable::draw(const Mn::Matrix4& transformationMatrix,
   // setup image based lighting for the shader
   if (flags_ >= PbrShader::Flag::ImageBasedLighting) {
     CORRADE_INTERNAL_ASSERT(pbrIbl_);
-    shader_->bindIrradianceCubeMap(
-        pbrIbl_->getIrradianceMap().getTexture(CubeMap::TextureType::Color));
+
     shader_->bindBrdfLUT(pbrIbl_->getBrdfLookupTable());
-    shader_->bindPrefilteredMap(
-        pbrIbl_->getPrefilteredMap().getTexture(CubeMap::TextureType::Color));
     shader_->setPrefilteredMapMipLevels(
         pbrIbl_->getPrefilteredMap().getMipmapLevels());
+
+    auto tmpHelper =
+        (*this->pbrIBLHelpers_)["brdflut_ldr_512x512.png_autoshop_01_1k.hdr"];
+    shader_->bindIrradianceCubeMap1(
+        tmpHelper->getIrradianceMap().getTexture(CubeMap::TextureType::Color));
+    shader_->bindPrefilteredMap1(
+        tmpHelper->getPrefilteredMap().getTexture(CubeMap::TextureType::Color));
+
+    tmpHelper = (*this->pbrIBLHelpers_)
+        ["brdflut_ldr_512x512.png_blue_photo_studio_1k.hdr"];
+    shader_->bindIrradianceCubeMap2(
+        tmpHelper->getIrradianceMap().getTexture(CubeMap::TextureType::Color));
+    shader_->bindPrefilteredMap2(
+        tmpHelper->getPrefilteredMap().getTexture(CubeMap::TextureType::Color));
+
+    tmpHelper = (*this->pbrIBLHelpers_)
+        ["brdflut_ldr_512x512.png_brown_photostudio_02_1k.hdr"];
+    shader_->bindIrradianceCubeMap3(
+        tmpHelper->getIrradianceMap().getTexture(CubeMap::TextureType::Color));
+    shader_->bindPrefilteredMap3(
+        tmpHelper->getPrefilteredMap().getTexture(CubeMap::TextureType::Color));
+
+    tmpHelper =
+        (*this->pbrIBLHelpers_)["brdflut_ldr_512x512.png_lythwood_room_1k.hdr"];
+    shader_->bindIrradianceCubeMap4(
+        tmpHelper->getIrradianceMap().getTexture(CubeMap::TextureType::Color));
+    shader_->bindPrefilteredMap4(
+        tmpHelper->getPrefilteredMap().getTexture(CubeMap::TextureType::Color));
   }
 
   if (skinData_) {

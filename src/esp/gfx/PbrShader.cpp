@@ -318,12 +318,25 @@ PbrShader::PbrShader(const Configuration& config)
 
   // IBL related textures
   if (flags_ >= Flag::ImageBasedLighting) {
-    setUniform(uniformLocation("uIrradianceMap"),
-               pbrTextureUnitSpace::TextureUnit::IrradianceMap);
     setUniform(uniformLocation("uBrdfLUT"),
                pbrTextureUnitSpace::TextureUnit::BrdfLUT);
-    setUniform(uniformLocation("uPrefilteredMap"),
-               pbrTextureUnitSpace::TextureUnit::PrefilteredMap);
+
+    setUniform(uniformLocation("uIrradianceMap1"),
+               pbrTextureUnitSpace::TextureUnit::IrradianceMap1);
+    setUniform(uniformLocation("uPrefilteredMap1"),
+               pbrTextureUnitSpace::TextureUnit::PrefilteredMap1);
+    setUniform(uniformLocation("uIrradianceMap2"),
+               pbrTextureUnitSpace::TextureUnit::IrradianceMap2);
+    setUniform(uniformLocation("uPrefilteredMap2"),
+               pbrTextureUnitSpace::TextureUnit::PrefilteredMap2);
+    setUniform(uniformLocation("uIrradianceMap3"),
+               pbrTextureUnitSpace::TextureUnit::IrradianceMap3);
+    setUniform(uniformLocation("uPrefilteredMap3"),
+               pbrTextureUnitSpace::TextureUnit::PrefilteredMap3);
+    setUniform(uniformLocation("uIrradianceMap4"),
+               pbrTextureUnitSpace::TextureUnit::IrradianceMap4);
+    setUniform(uniformLocation("uPrefilteredMap4"),
+               pbrTextureUnitSpace::TextureUnit::PrefilteredMap4);
   }
 
   // cache the uniform locations
@@ -685,15 +698,6 @@ PbrShader& PbrShader::bindVolumeLayerThicknessTexture(
   return *this;
 }
 
-PbrShader& PbrShader::bindIrradianceCubeMap(Mn::GL::CubeMapTexture& texture) {
-  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
-                 "PbrShader::bindIrradianceCubeMap(): the shader was not "
-                 "created with image based lighting enabled",
-                 *this);
-  texture.bind(pbrTextureUnitSpace::TextureUnit::IrradianceMap);
-  return *this;
-}
-
 PbrShader& PbrShader::bindBrdfLUT(Mn::GL::Texture2D& texture) {
   CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
                  "PbrShader::bindBrdfLUT(): the shader was not "
@@ -703,12 +707,75 @@ PbrShader& PbrShader::bindBrdfLUT(Mn::GL::Texture2D& texture) {
   return *this;
 }
 
-PbrShader& PbrShader::bindPrefilteredMap(Mn::GL::CubeMapTexture& texture) {
+PbrShader& PbrShader::bindIrradianceCubeMap1(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindIrradianceCubeMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::IrradianceMap1);
+  return *this;
+}
+
+PbrShader& PbrShader::bindPrefilteredMap1(Mn::GL::CubeMapTexture& texture) {
   CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
                  "PbrShader::bindPrefilteredMap(): the shader was not "
                  "created with image based lighting enabled",
                  *this);
-  texture.bind(pbrTextureUnitSpace::TextureUnit::PrefilteredMap);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::PrefilteredMap1);
+  return *this;
+}
+
+PbrShader& PbrShader::bindIrradianceCubeMap2(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindIrradianceCubeMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::IrradianceMap2);
+  return *this;
+}
+
+PbrShader& PbrShader::bindPrefilteredMap2(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindPrefilteredMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::PrefilteredMap2);
+  return *this;
+}
+
+PbrShader& PbrShader::bindIrradianceCubeMap3(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindIrradianceCubeMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::IrradianceMap3);
+  return *this;
+}
+
+PbrShader& PbrShader::bindPrefilteredMap3(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindPrefilteredMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::PrefilteredMap3);
+  return *this;
+}
+
+PbrShader& PbrShader::bindIrradianceCubeMap4(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindIrradianceCubeMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::IrradianceMap4);
+  return *this;
+}
+
+PbrShader& PbrShader::bindPrefilteredMap4(Mn::GL::CubeMapTexture& texture) {
+  CORRADE_ASSERT(flags_ >= Flag::ImageBasedLighting,
+                 "PbrShader::bindPrefilteredMap(): the shader was not "
+                 "created with image based lighting enabled",
+                 *this);
+  texture.bind(pbrTextureUnitSpace::TextureUnit::PrefilteredMap4);
   return *this;
 }
 
