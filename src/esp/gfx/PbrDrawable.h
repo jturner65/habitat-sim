@@ -310,6 +310,8 @@ class PbrDrawable : public Drawable {
   Mn::Resource<Mn::GL::AbstractShaderProgram, PbrShader> shader_;
   std::shared_ptr<PbrIBLHelper> pbrIbl_ = nullptr;
 
+  std::unordered_map<std::string, std::shared_ptr<esp::gfx::PbrIBLHelper>>*
+      pbrIBLHelpers_;
   /**
    * Local cache of material quantities to speed up access in draw
    */
