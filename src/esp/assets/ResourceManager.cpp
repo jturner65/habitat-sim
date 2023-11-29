@@ -2478,18 +2478,41 @@ void ResourceManager::loadMaterials(Importer& importer,
       // Merge all texture-pointer custom attributes with material holding
       // original attributes + non-texture-pointer custom attributes for final
       // material
-      Cr::Containers::Optional<Mn::Trade::MaterialData> finalMaterial =
-          Mn::MaterialTools::merge(
-              *mergedCustomMaterial,
-              Mn::Trade::MaterialData{
-                  {}, std::move(newAttributes), std::move(newLayers)});
+      if (assetName == "female_3.glb") {
+        Mn::Trade::MaterialData finalMaterial = buildDefaultMaterial();
+        finalMaterial.mutableAttribute<Mn::Color4>(
+            Mn::Trade::MaterialAttribute::SpecularColor) = Mn::Color4{1.0};
+        finalMaterial.mutableAttribute<Mn::Float>(
+            Mn::Trade::MaterialAttribute::Shininess) = 250.0f;
+        finalMaterial.mutableAttribute<Mn::Color4>(
+            Mn::Trade::MaterialAttribute::BaseColor) =
+            Mn::Color4{1.0, 1.0f, 1.0f, 0.1f};
+        finalMaterial.mutableAttribute<Mn::Float>(
+            Mn::Trade::MaterialAttribute::Metalness) = 0.1f;
+        finalMaterial.mutableAttribute<Mn::Float>(
+            Mn::Trade::MaterialAttribute::Roughness) = 0.1f;
 
-      ESP_DEBUG() << debugStr;
-      // for now, just use unique ID for material key. This may change if we
-      // expose materials to user for post-load modification
+        finalMaterial = setMaterialDefaultUserAttributes(
+            finalMaterial, ObjectInstanceShaderType::PBR);
 
-      shaderManager_.set<Mn::Trade::MaterialData>(materialKey,
-                                                  std::move(*finalMaterial));
+        ESP_DEBUG() << debugStr;
+        shaderManager_.set<Mn::Trade::MaterialData>(materialKey,
+                                                    std::move(finalMaterial));
+      } else {
+        Cr::Containers::Optional<Mn::Trade::MaterialData> finalMaterial =
+            Mn::MaterialTools::merge(
+                *mergedCustomMaterial,
+                Mn::Trade::MaterialData{
+                    {}, std::move(newAttributes), std::move(newLayers)});
+
+        ESP_DEBUG() << debugStr;
+
+        // for now, just use unique ID for material key. This may change if we
+        // expose materials to user for post-load modification
+
+        shaderManager_.set<Mn::Trade::MaterialData>(materialKey,
+                                                    std::move(*finalMaterial));
+      }
     }
   }
 }  // ResourceManager::loadMaterials
