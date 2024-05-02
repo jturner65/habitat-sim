@@ -1091,6 +1091,23 @@ Viewer::Viewer(const Arguments& arguments)
   profiler_.setup(profilerValues, 50);
 
   printHelpText();
+
+  ESP_WARNING() << "Size of bool : " << sizeof(bool);                 // 1
+  ESP_WARNING() << "Size of int : " << sizeof(int);                   // 4
+  ESP_WARNING() << "Size of magnum rad : " << sizeof(Mn::Rad);        // 4
+  ESP_WARNING() << "Size of double : " << sizeof(double);             // 8
+  ESP_WARNING() << "Size of magnum vec 2 : " << sizeof(Mn::Vector2);  // 8
+  ESP_WARNING() << "Size of magnum vec 3 : " << sizeof(Mn::Vector3);  // 12
+  ESP_WARNING() << "Size of magnum vec 4 : " << sizeof(Mn::Vector4);  // 16
+  ESP_WARNING() << "Size of magnum mat 3 : " << sizeof(Mn::Matrix3);  // 36
+  ESP_WARNING() << "Size of magnum mat 4 : " << sizeof(Mn::Matrix4);  // 64
+  ESP_WARNING() << "Size of ptr to magnum mat 4 : "
+                << sizeof(Mn::Matrix4*);                                // 8
+  ESP_WARNING() << "Size of magnum quat : " << sizeof(Mn::Quaternion);  // 16
+  ESP_WARNING() << "Size of string : " << sizeof(std::string);          // 32
+  ESP_WARNING() << "Size of ConfigValue : "
+                << sizeof(esp::core::config::ConfigValue);  // 48
+
 }  // end Viewer::Viewer
 
 void Viewer::initSimPostReconfigure() {
