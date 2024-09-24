@@ -436,10 +436,10 @@ int Configuration::loadOneConfigFromJson(int numConfigSettings,
   ++numConfigSettings;
   if (jsonObj.IsDouble()) {
     set(key, jsonObj.GetDouble());
-  } else if (jsonObj.IsInt64()) {
-    set(key, jsonObj.GetInt64());
   } else if (jsonObj.IsInt()) {
     set(key, jsonObj.GetInt());
+  } else if (jsonObj.IsInt64()) {
+    set(key, jsonObj.GetInt64());
   } else if (jsonObj.IsString()) {
     set(key, jsonObj.GetString());
   } else if (jsonObj.IsBool()) {
