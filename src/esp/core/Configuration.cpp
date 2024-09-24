@@ -37,6 +37,7 @@ const std::unordered_map<ConfigValType, std::string, ConfigValTypeHash>
                           {ConfigValType::MagnumRad, "Mn::Rad"},
                           {ConfigValType::MagnumDeg, "Mn::Deg"},
                           {ConfigValType::Double, "double"},
+                          {ConfigValType::Long, "long"},
                           {ConfigValType::MagnumVec2, "Mn::Vector2"},
                           {ConfigValType::MagnumVec2i, "Mn::Vector2i"},
                           {ConfigValType::MagnumVec3, "Mn::Vector3"},
@@ -106,7 +107,7 @@ struct PointerBasedTypeHandler {
  * ConfigValue supports.
  *
  * This array will be indexed by consuming ConfigValType -
- * int(ConfigValType::_storedAsAPointer).
+ * static_cast<int32_t>(ConfigValType::_storedAsAPointer).
  *
  * There needs to be an entry in this table for each pointer-based data
  * type, in sequence as specified in @ref ConfigValType enum following
@@ -126,7 +127,8 @@ constexpr PointerBasedTypeHandler pointerBasedTypeHandlers[]{
 };
 
 PointerBasedTypeHandler pointerBasedConfigTypeHandlerFor(ConfigValType type) {
-  const std::size_t i = int(type) - int(ConfigValType::_storedAsAPointer);
+  const std::size_t i = static_cast<int32_t>(type) -
+                        static_cast<int32_t>(ConfigValType::_storedAsAPointer);
   CORRADE_INTERNAL_ASSERT(i <
                           Cr::Containers::arraySize(pointerBasedTypeHandlers));
   return pointerBasedTypeHandlers[i];
@@ -144,7 +146,7 @@ std::string getNameForStoredType(const ConfigValType& value) {
   return Cr::Utility::formatString(
       "ConfigValType with value {} not currently supported fully as a type "
       "for a ConfigValue",
-      static_cast<int>(value));
+      static_cast<int32_t>(value));
 }
 
 ConfigValue::ConfigValue(const ConfigValue& otr) {
@@ -265,6 +267,9 @@ std::string ConfigValue::getAsString() const {
     case ConfigValType::Double: {
       return Cr::Utility::formatString("{}", get<double>());
     }
+    case ConfigValType::Long: {
+      return std::to_string(get<int64_t>());
+    }
     case ConfigValType::String: {
       return get<std::string>();
     }
@@ -341,6 +346,9 @@ io::JsonGenericValue ConfigValue::writeToJsonObject(
     case ConfigValType::Double: {
       return io::toJsonValue(get<double>(), allocator);
     }
+    case ConfigValType::Long: {
+      return io::toJsonValue(get<int64_t>(), allocator);
+    }
     case ConfigValType::MagnumVec2: {
       return io::toJsonValue(get<Mn::Vector2>(), allocator);
     }
@@ -387,6 +395,8 @@ bool ConfigValue::putValueInConfigGroup(
       return cfg.setValue(key, get<Mn::Deg>());
     case ConfigValType::Double:
       return cfg.setValue(key, get<double>());
+    case ConfigValType::Long:
+      return cfg.setValue(key, get<int64_t>());
     case ConfigValType::String:
       return cfg.setValue(key, get<std::string>());
     case ConfigValType::MagnumVec2:
@@ -426,7 +436,9 @@ int Configuration::loadOneConfigFromJson(int numConfigSettings,
   ++numConfigSettings;
   if (jsonObj.IsDouble()) {
     set(key, jsonObj.GetDouble());
-  } else if (jsonObj.IsNumber()) {
+  } else if (jsonObj.IsInt64()) {
+    set(key, jsonObj.GetInt64());
+  } else if (jsonObj.IsInt()) {
     set(key, jsonObj.GetInt());
   } else if (jsonObj.IsString()) {
     set(key, jsonObj.GetString());

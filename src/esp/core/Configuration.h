@@ -35,7 +35,7 @@ constexpr int CONFIG_VAL_SIZE = 8;  // 2 * 4(DWORDs)
  * placed below @p _nonTrivialTypes tag. Any small, trivially copyable types
  * should be placed before @p _storedAsAPointer tag.
  */
-enum class ConfigValType {
+enum class ConfigValType : int32_t {
   /**
    * @brief Unknown type
    */
@@ -60,7 +60,10 @@ enum class ConfigValType {
    * @brief double type
    */
   Double,
-
+  /**
+   * @brief long type
+   */
+  Long,
   /**
    * @brief Magnum::Vector2 type
    */
@@ -162,15 +165,15 @@ std::string getNameForStoredType(const ConfigValType& value);
  * (i.e. the type is trivially copyable or not)
  */
 constexpr bool isConfigValTypePointerBased(ConfigValType type) {
-  return static_cast<int>(type) >=
-         static_cast<int>(ConfigValType::_storedAsAPointer);
+  return static_cast<int32_t>(type) >=
+         static_cast<int32_t>(ConfigValType::_storedAsAPointer);
 }
 /**
  * @brief Quick check to see if type is trivially copyable or not.
  */
 constexpr bool isConfigValTypeNonTrivial(ConfigValType type) {
-  return static_cast<int>(type) >=
-         static_cast<int>(ConfigValType::_nonTrivialTypes);
+  return static_cast<int32_t>(type) >=
+         static_cast<int32_t>(ConfigValType::_nonTrivialTypes);
 }
 
 /**
@@ -242,6 +245,13 @@ constexpr ConfigValType configValTypeFor<double>() {
   return ConfigValType::Double;
 }
 
+/**
+ * @brief Returns @ref ConfigValType::Long type enum for specified type
+ */
+template <>
+constexpr ConfigValType configValTypeFor<int64_t>() {
+  return ConfigValType::Long;
+}
 /**
  * @brief Returns @ref ConfigValType::String type enum for specified type
  */

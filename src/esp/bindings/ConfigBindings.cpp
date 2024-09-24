@@ -26,6 +26,8 @@ py::object getObjectForConfigValue(const ConfigValue& value) {
       return py::cast(static_cast<Mn::Degd>(value.get<Mn::Deg>()));
     case ConfigValType::Double:
       return py::cast(value.get<double>());
+    case ConfigValType::Long:
+      return py::cast(value.get<int64_t>());
     case ConfigValType::MagnumVec2:
       return py::cast(value.get<Mn::Vector2>());
     case ConfigValType::MagnumVec2i:
@@ -86,6 +88,7 @@ void initConfigBindings(py::module& m) {
       .value("MagnumRad", ConfigValType::MagnumRad)
       .value("MagnumDeg", ConfigValType::MagnumDeg)
       .value("Float", ConfigValType::Double)
+      .value("Long", ConfigValType::Long)
       .value("MagnumVec2", ConfigValType::MagnumVec2)
       .value("MagnumVec2i", ConfigValType::MagnumVec2i)
       .value("MagnumVec3", ConfigValType::MagnumVec3)
@@ -199,6 +202,7 @@ void initConfigBindings(py::module& m) {
   declareSetter<bool>(pyConfiguration, "boolean");
   declareSetter<int>(pyConfiguration, "integer");
   declareSetter<double>(pyConfiguration, "floating-point");
+  declareSetter<int64_t>(pyConfiguration, "long");
   declareSetter<Magnum::Vector2&>(pyConfiguration, "Magnum::Vector2");
   declareSetter<Magnum::Vector2i&>(pyConfiguration, "Magnum::Vector2i");
   declareSetter<Magnum::Vector3&>(pyConfiguration, "Magnum::Vector3");
@@ -232,6 +236,7 @@ void initConfigBindings(py::module& m) {
   declareInitializer<bool>(pyConfiguration, "boolean");
   declareInitializer<int>(pyConfiguration, "integer");
   declareInitializer<double>(pyConfiguration, "floating-point");
+  declareInitializer<int64_t>(pyConfiguration, "long");
   declareInitializer<Magnum::Vector2&>(pyConfiguration, "Magnum::Vector2");
   declareInitializer<Magnum::Vector2i&>(pyConfiguration, "Magnum::Vector2i");
   declareInitializer<Magnum::Vector3&>(pyConfiguration, "Magnum::Vector3");
