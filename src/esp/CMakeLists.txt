@@ -42,13 +42,17 @@ endif()
 # Set path variables
 
 # Set PBR configuration default path. Used in gfx/configure.h
-set(ESP_DEFAULT_PBRSHADER_CONFIG_REL_PATH ./data/default.pbr_config.json)
+set(ESP_DEFAULT_PBRSHADER_CONFIG_REL_PATH
+    ./data/default_configs/default.pbr_config.json
+)
 set(ESP_DEFAULT_PBRSHADER_CONFIG
     ${PROJECT_SOURCE_DIR}/.${ESP_DEFAULT_PBRSHADER_CONFIG_REL_PATH}
 )
 
 # Set Physics Manager configuration default path. Used in physics/configure.h
-set(ESP_DEFAULT_PHYSICS_CONFIG_REL_PATH ./data/default.physics_config.json)
+set(ESP_DEFAULT_PHYSICS_CONFIG_REL_PATH
+    ./data/default_configs/default.physics_config.json
+)
 set(ESP_DEFAULT_PHYSICS_CONFIG
     ${PROJECT_SOURCE_DIR}/.${ESP_DEFAULT_PHYSICS_CONFIG_REL_PATH}
 )
@@ -86,6 +90,10 @@ corrade_add_resource(GfxShaderResources ../shaders/gfx/Shaders.conf)
 
 # pbr IBL image resources configuration
 corrade_add_resource(PbrIBlImageResources ../../data/pbr/PbrImages.conf)
+# defaults config
+corrade_add_resource(
+  DefaultJSONConfigResources ../../../data/default_configs/DefaultConfigs.conf
+)
 
 ################################
 # Specify packages to find
@@ -339,6 +347,7 @@ set(
   metadata/MetadataMediator.cpp
   metadata/URDFParser.cpp
   metadata/URDFParser.h
+  ${DefaultJSONConfigResources}
 )
 
 #################
